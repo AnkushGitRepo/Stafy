@@ -24,3 +24,13 @@ One entry per meaningful prompt. The README "AI Development Process" section is 
 - **What I accepted**: TO BE FILLED BY ANKUSH
 - **What I changed or rejected**: TO BE FILLED BY ANKUSH
 - **Commit(s)**: TO BE FILLED AFTER COMMIT
+
+## Entry: P-002
+
+- **Prompt**: [`docs/prompts/P-002-brand-and-landing-design.md`](./prompts/P-002-brand-and-landing-design.md) — brand identity + landing page design, needed before P-003 could implement any UI (its own prerequisite check blocks on `docs/DESIGN.md` having zero `TBD` tokens).
+- **Tool**: Claude Code (drafted the prompt, ran a first design pass) + Claude Design (the owner's separate session that produced the real deliverable).
+- **Why I used it**: P-003 was received first and its prerequisite check correctly caught that P-002 had never been run — `docs/DESIGN.md` still had every token as `TBD`. Rather than invent values to unblock P-003 (explicitly forbidden by both P-002 and P-003's own text), I drafted and ran P-002 first.
+- **AI's approach/output**: Entered Plan Mode, locked a placeholder brand direction (teal accent, Space Grotesk/Inter) via the local Claude Code `design` skill, and published two from-scratch canvases. Immediately after, the owner clarified that a real Claude Design project already existed at a URL referenced in the P-003 draft — a URL this session has no tool to fetch (the `design` skill explicitly cannot import an existing `claude.ai/design` project; that's a claude.ai/design-only capability). The owner then supplied two zip exports of that real project (`landing_page.zip`, `Placeholder values and deliverable scope.zip` — identical contents, confirmed via `diff`), built in a separate claude.ai/design session from the P-002 brief per its own `github.md` handoff note. That deliverable — a full interactive GSAP/ScrollTrigger/Flip landing prototype (10 sections, working role-switcher, scroll-scrubbed approvals diagram) and a brand/handoff sheet (palette, type scale, logo SVGs, component inventory, a 9-item motion spec table) — was substantially more complete than the placeholder canvases. I discarded my placeholder canvases' content, republished the real files to the same Artifact URLs (fixing asset-path references so the logo SVGs resolve inside the design-canvas sandbox), and rewrote `docs/DESIGN.md` and `docs/DECISIONS.md` (ADR-025) from the real values.
+- **What I accepted**: TO BE FILLED BY ANKUSH
+- **What I changed or rejected**: TO BE FILLED BY ANKUSH
+- **Commit(s)**: TO BE FILLED AFTER COMMIT

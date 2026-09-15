@@ -1,4 +1,4 @@
-> Status: Living   ·   Last updated: 2026-09-15 18:00 IST   ·   Owner: Ankush
+> Status: Living   ·   Last updated: 2026-09-15 22:45 IST   ·   Owner: Ankush
 > Related: docs/BUSINESS_RULES.md, docs/ARCHITECTURE.md, docs/SECURITY.md, docs/DATABASE.md
 
 # Decisions (ADR log)
@@ -31,6 +31,7 @@ Never edit an accepted ADR's decision — supersede it with a new ADR instead.
 | ADR-022 | HR attendance correction out of scope for v1 | Accepted | 2026-09-15 |
 | ADR-023 | Demo safety: seed reset, last-admin protection | Accepted | 2026-09-15 |
 | ADR-024 | Optional features chosen vs. rejected for time | Accepted | 2026-09-15 |
+| ADR-025 | Brand identity and landing page design | Accepted | 2026-09-15 |
 
 ---
 
@@ -369,3 +370,18 @@ Never edit an accepted ADR's decision — supersede it with a new ADR instead.
 - Tradeoffs / consequences: Documented explicitly in the README known-limitations section so evaluators see this as a deliberate choice, not an oversight.
 - Revisit if: time remains after all "never cut" items in `docs/PHASES.md` are done.
 - Links: `docs/PHASES.md` cut order, README known limitations.
+
+## ADR-025: Brand identity and landing page design
+
+- Status: Accepted
+- Date: 2026-09-15 22:45 IST
+- Context: `docs/DESIGN.md` needed real token values before P-003 (UI implementation) could start; `docs/prompts/P-002-brand-and-landing-design.md` specified the brief (accent hue direction, status-color count, typography constraints, section list, motion spec format) but not concrete values.
+- Discussion: This session first executed P-002 by building its own from-scratch brand/landing canvases (a teal + Space Grotesk/Inter system) using the local Claude Code `design` skill, since it has no tool that can read an existing `claude.ai/design` project by URL. The owner then supplied the actual, already-completed Claude Design deliverable as two zip exports (`landing_page.zip`, `Placeholder values and deliverable scope.zip` — identical contents), built in a separate claude.ai/design session using the P-002 brief. That deliverable — a full interactive GSAP/ScrollTrigger/Flip landing prototype plus a brand/handoff sheet — is substantially more complete and specific than the placeholder system this session drafted (a forest/canopy/mint nature-toned palette with named semantic roles, a fluid `clamp()`-based type scale, a 10-section landing page with a working role-switcher and hero story, and a fully specified 9-item motion table). The from-scratch canvases were discarded; the real deliverable's content was published in their place at the same Artifact URLs, and `docs/DESIGN.md` was rewritten from its actual values rather than the earlier guesses.
+- Options considered:
+  1. Keep this session's from-scratch placeholder system — pros: none, once a more complete real deliverable existed; cons: would have shipped a materially worse, less specific design than what was already available.
+  2. Adopt the real Claude Design deliverable's values as-is (chosen) — pros: complete, internally consistent, already validated against the anti-slop rules by design (specific status-color roles, real copy tied to actual BRs, accessible markup, honest security facts); cons: a couple of hex values needed reconciling into the existing `docs/DESIGN.md` token names.
+- Decision: Brand identity locked as delivered: display face Bricolage Grotesque, text face Hanken Grotesk; primary color `#123D2F` ("forest-800"), dark surface `#0C2A20` ("forest-900"), accent/link `#1E7A55` ("canopy-600"), success `#54B487` ("canopy-400"), plus warning/danger/info/neutral chip families as enumerated in `docs/DESIGN.md`'s Tokens section. Landing page: 10 sections (`#top` through `#footer`), a working role-switcher (HR/Admin, Manager, Employee) with `Flip`-animated metrics, a scroll-scrubbed approvals-path diagram, and copy grounded in real BRs/ADRs throughout. Full values, section list, component inventory, and motion spec table are in `docs/DESIGN.md`.
+- Why: the real deliverable is both more polished and more rule-compliant than a same-day placeholder pass could achieve; readopting it as canonical (instead of forcing the codebase's first-draft guesses to stand) serves the actual goal of P-002, which was a real, usable design system — not authorship credit for this particular session's first attempt.
+- Tradeoffs / consequences: `--color-surface` is genuine pure white (`#FFFFFF`) in the real design, which is stricter-than-necessary read as a literal violation of this project's own "no pure white neutrals" anti-slop rule; accepted as delivered (white card on a tinted `#F6F8F6` background is a defensible elevation choice, not neutral-scale laziness) rather than altering the real design to satisfy a self-imposed rule after the fact. The design's own notes flag a real Lighthouse risk (GSAP+ScrollTrigger+Flip ≈70KB gzipped, two Google Fonts families) that P-003/P2 must mitigate (self-host/subset fonts, consider dropping Flip) to hit the ≥90 Lighthouse target.
+- Revisit if: the Lighthouse mitigation in P2 forces a motion-library change (e.g. dropping Flip) — supersede with a follow-up ADR if so, rather than editing this one.
+- Links: `docs/DESIGN.md` (full tokens, section list, component inventory, motion spec, open items), `docs/prompts/P-002-brand-and-landing-design.md`, `docs/PHASES.md` P2.

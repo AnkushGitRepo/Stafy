@@ -10,3 +10,6 @@ build/
 coverage/
 playwright-report/
 test-results/
+
+# One-off input material (design exports, etc.) — not project source
+*.zip
