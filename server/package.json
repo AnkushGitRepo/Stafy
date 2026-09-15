@@ -1,0 +1,27 @@
+{
+  "name": "server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "lint": "eslint .",
+    "test:unit": "vitest run tests/unit",
+    "test:api": "vitest run tests/integration"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^5.0.1",
+    "helmet": "^8.0.0",
+    "pg": "^8.13.1",
+    "pino": "^9.5.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /app
+Disallow: /api
+Allow: /
+
+Sitemap: https://TBD-set-at-deploy.example/sitemap.xml

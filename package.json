@@ -1,0 +1,24 @@
+{
+  "name": "stafy",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace client & npm run dev --workspace server",
+    "build": "npm run build --workspace client",
+    "lint": "npm run lint --workspace client && npm run lint --workspace server",
+    "test": "npm run test:unit && npm run test:api",
+    "test:unit": "npm run test:unit --workspace server",
+    "test:api": "npm run test:api --workspace server",
+    "test:e2e": "playwright test",
+    "seed": "node server/src/scripts/seed.js",
+    "seed:reset": "node server/src/scripts/seed.js --reset"
+  }
+}

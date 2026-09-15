@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-text);
+  color: var(--color-text);
+  background: var(--color-bg);
+}

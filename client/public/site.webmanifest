@@ -1,0 +1,9 @@
+{
+  "name": "Stafy",
+  "short_name": "Stafy",
+  "icons": [],
+  "theme_color": "TBD",
+  "background_color": "TBD",
+  "display": "standalone",
+  "start_url": "/"
+}

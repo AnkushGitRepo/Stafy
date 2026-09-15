@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Placeholder domain — TBD, filled in with the real deployed URL before submission -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://TBD-set-at-deploy.example/</loc>
+  </url>
+  <url>
+    <loc>https://TBD-set-at-deploy.example/login</loc>
+  </url>
+  <url>
+    <loc>https://TBD-set-at-deploy.example/privacy</loc>
+  </url>
+  <url>
+    <loc>https://TBD-set-at-deploy.example/terms</loc>
+  </url>
+</urlset>
