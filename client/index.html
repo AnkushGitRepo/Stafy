@@ -3,11 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stafy</title>
-    <meta name="description" content="Stafy — role-based Mini HRMS: attendance, leave, and employee management." />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <!-- apple-touch-icon, social preview (OG/Twitter) image, and favicon assets: TBD — set in P-002 -->
+    <title>Stafy: attendance, leave and approvals for small teams</title>
+    <meta name="description" content="A small HR system where check-ins, leave requests and approvals follow rules enforced on the server. Try it as HR, a manager or an employee." />
+    <!-- {{SITE_URL}} — set once deployed (P1 exit criteria) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Stafy: attendance, leave and approvals for small teams" />
+    <meta property="og:description" content="A small HR system where check-ins, leave requests and approvals follow rules enforced on the server. Try it as HR, a manager or an employee." />
+    <meta property="og:image" content="/social-preview.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Stafy: attendance and leave with the rules built in" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Stafy: attendance, leave and approvals for small teams" />
+    <meta name="twitter:description" content="A small HR system where check-ins, leave requests and approvals follow rules enforced on the server." />
+    <meta name="twitter:image" content="/social-preview.png" />
+    <meta name="theme-color" content="#123D2F" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- apple-touch-icon.png (180x180) and social-preview.png (1200x630) still need rasterizing — see docs/DESIGN.md Open items -->
     <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Loaded non-render-blocking (preload + swap-to-stylesheet on load):
+      the Google Fonts CSS was measured costing ~450ms of render-blocking
+      FCP/LCP time (Lighthouse). Text still renders immediately via the
+      fallback stack in tokens.css and swaps once the real faces load
+      (font-display=swap) — see docs/DESIGN.md Open items (Lighthouse risk).
+      Full self-hosting/subsetting is a further optimization, not done yet.
+    -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,600;12..96,75..100,700&family=Hanken+Grotesk:wght@400;500;600&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,600;12..96,75..100,700&family=Hanken+Grotesk:wght@400;500;600&display=swap"
+      />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

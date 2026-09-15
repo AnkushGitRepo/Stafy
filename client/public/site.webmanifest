@@ -1,9 +1,11 @@
 {
   "name": "Stafy",
   "short_name": "Stafy",
-  "icons": [],
-  "theme_color": "TBD",
-  "background_color": "TBD",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" }
+  ],
+  "theme_color": "#123D2F",
+  "background_color": "#F6F8F6",
   "display": "standalone",
   "start_url": "/"
 }

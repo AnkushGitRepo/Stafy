@@ -1,40 +1,57 @@
 /*
- * Design tokens — see docs/DESIGN.md.
- * Values are TBD — set in P-002 from the landing-page design reference.
- * Names are fixed now so components can reference them without churn later.
+ * Design tokens — see docs/DESIGN.md (real values from the P-002 Claude Design
+ * deliverable, ADR-025). Names are fixed so components never reference raw hex.
  */
 :root {
   /* Color */
-  --color-bg: initial;
-  --color-surface: initial;
-  --color-border: initial;
-  --color-text: initial;
-  --color-text-muted: initial;
-  --color-accent: initial;
-  --color-accent-contrast: initial;
-  --color-success: initial;
-  --color-warning: initial;
-  --color-danger: initial;
-  --color-info: initial;
-  --color-status-present: initial;
-  --color-status-half-day: initial;
-  --color-status-absent: initial;
-  --color-status-leave: initial;
-  --color-status-pending: initial;
-  --color-status-approved: initial;
-  --color-status-rejected: initial;
-  --color-status-cancelled: initial;
+  --color-bg: #F6F8F6;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #EFF3F0;
+  --color-border: #DDE5E0;
+  --color-text: #0F1C17;
+  --color-text-muted: #43534C;
+  --color-text-muted-2: #5F6F68;
+  --color-accent: #1E7A55;
+  --color-accent-contrast: #FFFFFF;
+  --color-primary: #123D2F;
+  --color-primary-hover: #185240;
+  --color-dark: #0C2A20;
+  --color-dark-border: #1B4636;
+  --color-dark-border-2: #2C5A48;
+  --color-on-dark-muted: #A8CBBB;
+  --color-on-dark-faint: #7FA896;
+  --color-success: #54B487;
+  --color-success-chip-bg: #D9F2E4;
+  --color-success-chip-hairline: #BEE6D1;
+  --color-warning: #E9A23B;
+  --color-warning-chip-bg: #FCEFD8;
+  --color-warning-chip-text: #8A5300;
+  --color-danger: #B42318;
+  --color-danger-chip-bg: #FDE7E5;
+  --color-info: #2F5FB3;
+  --color-info-chip-bg: #E6EEFB;
+  --color-neutral-dot: #5B6661;
+  --color-neutral-chip-bg: #EDF0EE;
+
+  --color-status-present: #54B487;
+  --color-status-half-day: #E9A23B;
+  --color-status-absent: #B42318;
+  --color-status-leave: #2F5FB3;
+  --color-status-pending: #E9A23B;
+  --color-status-approved: #1E7A55;
+  --color-status-rejected: #B42318;
+  --color-status-cancelled: #5B6661;
 
   /* Typography */
-  --font-display: system-ui, sans-serif;
-  --font-text: system-ui, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 2rem;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-text: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-size-xs: 0.8125rem;  /* 13px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5625rem; /* 25px */
+  --font-size-3xl: 1.953rem;  /* 31px */
 
   /* Spacing (4px base) */
   --space-1: 0.25rem;
@@ -45,11 +62,12 @@
   --space-8: 2rem;
 
   /* Radius / shadow / z-index */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --shadow-sm: initial;
-  --shadow-md: initial;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(12, 42, 32, 0.06);
+  --shadow-md: 0 8px 24px rgba(12, 42, 32, 0.08);
   --z-dropdown: 100;
   --z-modal: 200;
   --z-toast: 300;
@@ -59,9 +77,9 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
 
-  /* Motion */
-  --duration-fast: 150ms;
-  --duration-base: 300ms;
+  /* Motion (app baseline; landing uses the per-section motion table in docs/DESIGN.md) */
+  --duration-fast: 250ms;
+  --duration-base: 400ms;
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-standard: ease-in-out;
 }
