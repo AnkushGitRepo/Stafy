@@ -3,14 +3,15 @@
 
 # Current phase & task
 
-- Phase: **P0 — Setup** (docs, agent config, scaffold, first commit).
+- Phase: **P0 — Setup** (docs, agent config, scaffold, first commit) — **done**.
 - Task: P-001 project setup, executed under the **Stafy** brand (renamed from the original "PeopleOps" draft — see `docs/prompts/P-001-project-setup.md`).
+- Next: **P1 — Foundation** (migrations, seed, auth, middleware, policies, domain functions + unit tests, Vercel skeleton deploy).
 
 # Status of phases
 
 | Phase | Status | Archive link |
 |---|---|---|
-| P0 | In progress | — |
+| P0 | Done | — (small enough to leave inline; see "Done in current phase" below) |
 | P1 | Not started | — |
 | P2 | Not started | — |
 | P3 | Not started | — |
@@ -25,7 +26,7 @@
 - Full docs system created under `docs/` (this file, PRD, PLANNING, ARCHITECTURE, SECURITY, DATABASE, BUSINESS_RULES, TESTING, PHASES, DECISIONS, DESIGN, AI_DEVELOPMENT, AI_CODE_REVIEW, prompts/).
 - Claude Code configuration created (`AGENTS.md`, `CLAUDE.md`, `.claude/agents/*`, `.claude/skills/*`, `.claude/settings.json`).
 - Monorepo scaffold created (client, server, api, supabase/migrations, CI workflow) with `/api/health` and an empty routed client shell.
-- Commit hashes: TBD — filled in after the three P0 commits land (see `docs/AI_DEVELOPMENT.md` P-001 entry).
+- Commit hashes: `ce5ff95` (docs), `ae2c97b` (agent config), `3575465` (scaffold).
 - Verified for real: `npm install` (326 packages), `npm run lint` (0 errors, 8 expected warnings on TODO stub unused-args), `npm run test:unit` (1/1 passing — the `/api/health` smoke test), `npm run dev` (client `200` at `:5173`, `GET /api/health` → `{"status":"ok"}` at `:4000`).
 
 # In progress / next up

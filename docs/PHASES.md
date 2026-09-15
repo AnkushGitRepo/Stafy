@@ -7,7 +7,7 @@ Deadline: **2026-09-16 16:00 IST**. Feature freeze: **2026-09-16 13:00 IST**.
 
 | Phase | Scope | Timebox | Exit criteria | Depends on |
 |---|---|---|---|---|
-| P0 | Setup: docs, agent config, scaffold, first commit | 1.5h | [ ] all docs in §4 exist [ ] `.claude/` config exists [ ] `npm install`/`lint`/`test:unit`/`dev` succeed [ ] 3 commits made | — |
+| P0 | Setup: docs, agent config, scaffold, first commit | 1.5h | [x] all docs in §4 exist [x] `.claude/` config exists [x] `npm install`/`lint`/`test:unit`/`dev` succeed [x] 3 commits made | — |
 | P1 | Foundation: migrations, seed, auth (login/logout/refresh/me), authenticate/authorize middleware, policies, error handler, domain pure functions + unit tests, deploy skeleton to Vercel | 4h | [ ] migration run on real Supabase project [ ] seed data loads [ ] auth endpoints work end-to-end [ ] domain unit tests passing [ ] skeleton deployed | P0. Can run in parallel with P2 design work. |
 | P2 | Design system + Landing (GSAP) + Login + Privacy/Terms + 404 + SEO assets | 3h (GSAP polish hard-capped at 1h) | [ ] tokens filled from design reference [ ] landing/login/privacy/terms/404 built [ ] Lighthouse ≥90 on landing | Can run in parallel with P1 |
 | P3 | Employees module (HR): list/search/filter/paginate, add, edit, view, activate/deactivate, self profile | 2.5h | [ ] FR-EMP-01…05 implemented + tested | P1 |
