@@ -93,3 +93,5 @@ Before implementing any leave/attendance/employee endpoint, list the BR-IDs it m
 ## 11. Git
 
 Conventional commits (`feat(leave): ...`, `docs: ...`, `test: ...`, `chore: ...`). Commit per task. Never commit `.env*` except `.env.example`.
+
+Before deciding *not* to commit a pre-existing uncommitted file or directory, check whether anything already committed (or about to be committed) imports from it — if so, commit it regardless of who originally wrote it (AICR-006). Periodically verify the repo's actual deployable state with a real `git clone` into a scratch directory followed by install + build — `vercel --prod`/a local build both read the local working tree and can mask files that were never committed.

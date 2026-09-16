@@ -15,19 +15,20 @@ Status is `planned` until a test is written and actually run; only then does it 
 
 | BR / Threat | Test ID(s) | Status |
 |---|---|---|
-| BR-01 | T-UNIT-01 | deferred (time) — DB `CHECK` constraint enforces it regardless |
-| BR-02 | T-UNIT-02, T-API-02 | verified (manual, live) — overlapping leave insert rejected by the DB exclusion constraint |
-| BR-03 | T-API-03 | deferred (time) |
-| BR-04 | T-API-04 | deferred (time) |
-| BR-05 | T-UNIT-05 | deferred (time) — DB `CHECK` constraints enforce it regardless |
+| BR-01 | T-UNIT-01 | verified (manual, live) — apply with end-date before start-date returns `400 VALIDATION_ERROR` (Zod `.refine`, backed by the DB `CHECK` too) |
+| BR-02 | T-UNIT-02, T-API-02 | verified (manual, live) — overlapping leave insert rejected with `409 LEAVE_OVERLAP` (DB exclusion constraint, mapped from Postgres error code `23P01`) |
+| BR-03 | T-API-03 | deferred (time) — not implemented this pass |
+| BR-04 | T-API-04 | deferred (time) — not implemented this pass |
+| BR-05 | T-UNIT-05 | verified (manual, live) — half-day apply requires `startDate === endDate` and a session (Zod `.refine`, DB `CHECK` too) |
 | BR-06 | T-UNIT-06 | deferred (time) — not implemented this pass |
 | BR-07 | T-UNIT-07, T-API-07 | deferred (time) — balance check not implemented this pass |
 | BR-08 | T-UNIT-08 | deferred (time) — not implemented this pass |
-| BR-09 | T-API-09 | verified (manual, live) — reject with a <10-char reason returns `400 VALIDATION_ERROR` |
+| BR-09 | T-API-09 | verified (manual, live) — apply/reject with a <10-char reason both return `400`/`VALIDATION_ERROR` |
 | BR-10 | T-API-10 | verified (manual, live) — approver acting on their own request returns `403 SELF_APPROVAL_FORBIDDEN` (checked in code; not re-triggered live this pass) |
 | BR-11 | T-API-11 | verified (manual, live) — Team B manager approving a Team A request returns `404 NOT_FOUND`, confirmed against real seeded cross-team data |
 | BR-12 | T-API-12 | verified (manual, live) — conditional `WHERE status='pending'` update; second decide attempt on an already-decided request returns `409` |
-| BR-13a…e | T-API-13a…e | deferred (time) — cancel endpoint not implemented this pass |
+| BR-13a…d | T-API-13a…d | verified (manual, live) — `POST /api/leave-requests/:id/cancel`: pending cancels anytime, approved-future cancels, approved-past returns `409 LEAVE_ALREADY_STARTED`, rejected/cancelled returns `409 INVALID_STATUS_TRANSITION` |
+| BR-13e | T-API-13e | deferred (time) — self-only scoping is structural (query filters `employee_id = actor.id`), not exercised live |
 | BR-14 | T-API-14 | verified (manual, live) — double check-in returns `409 ALREADY_CHECKED_IN` |
 | BR-15 | T-API-15 | verified (manual, live) — check-out without a same-day check-in returns `409 NOT_CHECKED_IN` |
 | BR-16 | T-API-16 | verified (manual, live) — DB `CHECK` constraint; second check-out blocked in code (`check_out_at` already set) |
@@ -35,7 +36,8 @@ Status is `planned` until a test is written and actually run; only then does it 
 | BR-18 | T-UNIT-18 | passing — `server/tests/unit/time.test.js` (`isWorkingDay`) |
 | BR-19 | T-API-19 | deferred (time) |
 | BR-20 | T-API-20 | deferred (time) — no client-suppliable `employee_id` exists on the self-only routes built this pass, so the guard is structural rather than tested |
-| BR-21…26 | — | deferred (time) — Employees API not implemented this pass (see `docs/CONTEXT.md` cut list) |
+| BR-21 (uniqueness) | — | not exercised — no create-employee endpoint this pass |
+| BR-22…26 | — | deferred (time) — Employees write endpoints not implemented this pass (list/search/filter is real, `GET /api/employees`; see `docs/CONTEXT.md` cut list) |
 | IDOR (cross-team leave) | T-API-IDOR-01 | verified (manual, live) — see BR-11 |
 | Self-approval | T-API-SEC-01 | verified (manual, live) — see BR-10 |
 | Mass assignment | T-API-SEC-02 | deferred (time) — Employees API not implemented this pass |

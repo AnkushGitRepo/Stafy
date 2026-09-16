@@ -33,17 +33,25 @@
 - **P-007 (deadline mode)**: Supabase project `stafy` created live (ap-southeast-2); full schema migrated (`supabase/migrations/20260916140000_init.sql`); real Express API for auth, role-shaped dashboards, attendance check-in/out, and leave approvals (`server/src/routes/*`, `middleware/*`, `policies/index.js`); seed script run against the live DB (4 demo accounts + 4 more team members, attendance history, leave requests across statuses); frontend flipped off mocks (`USE_MOCKS = false`) with `CheckInCard`/`ApprovalsQueue` wired to real endpoints; deployed to Vercel production. Two real defects found and fixed live: AICR-004 (login-page infinite reload loop) and AICR-005 (IST time-conversion bug caught by a unit test). Full detail in `docs/AI_DEVELOPMENT.md` Entry P-007 and `CHANGELOG.md`.
 - Commit hashes: `ce5ff95`, `ae2c97b`, `3575465`, `9548e54` (P0); `9b40e47`, `85c54a7` (P-002); P-003/P-005/P-007 commit(s) TBD after this task's commits land.
 
-# Cuts made this pass (P-007), in the order the prompt's own cut-order named them
+# Post-report follow-up (same session): critical git gap + two more real features
 
-1. Employees module (list/search/filter/paginate/add/edit/deactivate) — no API, no UI beyond the existing "coming soon" nav destination. Reason: Tier 0 backend foundation (schema/auth/dashboard/attendance/leave-approval) took the full available time budget; this was next in line but time ran out first.
-2. Attendance history page (Admin/Manager table, Employee calendar) — same reason.
-3. Leave apply/balance/cancel page — same reason. The Manager/Admin approve/reject flow *is* real (via the dashboard's existing Approvals panel), just not a dedicated Leave page.
-4. `other_pages.zip` design export — unzipped but not ported; no real backend existed yet for an Employees/Attendance/Leave page to bind to when this was reached.
+After the first P-007 report, Ankush reported the deploy had failed and asked why `other_pages.zip` still wasn't addressed. Investigation found a critical, session-spanning defect (AICR-006): `client/src/features/landing/*` and three auth/dashboard files (built in P-003) had never been `git add`-ed in *any* P-005/P-007 commit, even though `App.jsx` (committed) imports from them directly. Every `vercel --prod` CLI deploy worked anyway because it uploads the local working tree, not git — this masked the gap until Ankush's `git push` triggered Vercel's GitHub-integration auto-deploy, which clones from the real remote and failed immediately. Fixed by committing all 18 files and verifying with a genuine `git clone` + build in a scratch directory (not just a local build, which wouldn't have caught this).
+
+With that fixed and ~75 minutes still left, built two more real, deployed features against the still-open cut list, both confirmed live in a real browser:
+- **Leave Apply** (Employee): was on the original "never cut" list and had been missed — now real (`POST /api/leave-requests`, `GET /api/leave-requests/types|mine`, `POST /api/leave-requests/:id/cancel`), at `/app/leave`.
+- **Employees directory** (Admin, read-only): `GET /api/employees` with search/department/status filters, at `/app/employees` — the first real slice of the Employees module and of `other_pages.zip`'s design pattern (flat table, filter bar), though reduced-fidelity (no drawer, no add/edit/deactivate, no pagination).
+
+# Cuts made this pass (P-007 + follow-up), in the order the prompt's own cut-order named them
+
+1. Employees **write** operations (add/edit/deactivate/reassign-reports) and the detail drawer — list/search/filter is real (see above), mutation isn't.
+2. Attendance history page (Admin/Manager table, Employee calendar) — check-in/out and the dashboard's recent-attendance list are real; no dedicated history page.
+3. Leave **Balance** and **Calendar** tabs, and the Manager/Admin dedicated Approvals/Team-calendar/All-requests page — Apply/My-requests/Cancel is real (see above); Manager/Admin approve/reject *is* real too, via the dashboard's existing Approvals panel, just not a dedicated Leave page for them.
+4. `other_pages.zip` design export — ported in reduced fidelity for Employees-list and Leave-apply only (tokens/components reused correctly, but no `DataTable`/`FilterBar`/`DetailDrawer`/`Tabs`/`CalendarMonth` generic components, no drawer, no calendar, no tabs). A full port of all three pages' complete P-006 spec did not fit the remaining time.
 5. Audit log UI — the writes are real (`audit_logs` table, feeds Admin's "Recent activity"); no dedicated list page.
 6. Automated integration/E2E tests — business rules the API enforces were verified manually against the live production API/DB instead (`docs/TESTING.md`), logged as `verified (manual, live)`, not claimed as automated `passing` coverage.
-7. Second cross-manager HR/Admin seed account, full ~20-day attendance history, full leave-status-combination coverage — `docs/DATABASE.md`'s seed plan was trimmed to a smaller real slice (4 extra employees, ~5 days, 4 leave requests) to fit the time budget.
+7. Second cross-manager HR/Admin seed account, full ~20-day attendance history, full leave-status-combination coverage — `docs/DATABASE.md`'s seed plan was trimmed to a smaller real slice (4 extra employees, ~5 days, 4+ leave requests) to fit the time budget.
 
-Never cut (all real, all live): server-side RBAC/scoping (404-not-403 confirmed live for cross-team leave), check-in/check-out, leave approve/reject with real business rules, the live deployed URL, a README with real demo credentials and an honest limitations section.
+Never cut (all real, all live): server-side RBAC/scoping (404-not-403 confirmed live for cross-team leave), check-in/check-out, leave apply/approve/reject/cancel with real business rules, the live deployed URL, a README with real demo credentials and an honest limitations section.
 
 # In progress / next up
 

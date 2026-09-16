@@ -66,3 +66,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Employees module, Attendance history page, Leave apply/balance/cancel page, and the `other_pages.zip` design port: not built this pass (Tier 0 backend foundation took priority under the deadline).
 - No automated integration/E2E test suite — business rules verified manually against the live API (`docs/TESTING.md`).
 - Seed data is a reduced slice of `docs/DATABASE.md`'s full plan (4 extra employees instead of 8, ~5 days of attendance instead of ~20, no second cross-manager HR account).
+
+## [P-007 follow-up] - 2026-09-16
+
+### Fixed
+- **Critical**: `client/src/features/landing/*`, `AuthLayout.jsx`, `ActivateAccountPage.jsx`, and `ComingSoonPage.jsx` (all built in P-003) had never actually been committed to git across any P-005/P-007 commit, even though `App.jsx` (committed) imports from them directly — every `vercel --prod` CLI deploy worked because it uploads the local working tree, masking the gap, but Vercel's GitHub-integration auto-deploy (triggered by `git push`, which clones from the real remote) failed outright. Committed all 18 missing files; verified with a genuine `git clone` + fresh install + build (AICR-006).
+
+### Added
+- Real "Apply for leave" flow (Employee): `POST /api/leave-requests` (BR-01/02/05/09 enforced), `GET /api/leave-requests/types|mine`, `POST /api/leave-requests/:id/cancel` (BR-13a-d). New `/app/leave` page with a real Apply modal and a live "My requests" list.
+- Real read-only Employees directory (Admin): `GET /api/employees` (search + department + status filter, admin-only). New `/app/employees` page with the P-006 design's shared filter-bar/table pattern (reduced fidelity — no drawer, add/edit/deactivate, or pagination yet).

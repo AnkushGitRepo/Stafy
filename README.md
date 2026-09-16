@@ -28,9 +28,11 @@ Demo credentials are intentionally public for evaluation — see `docs/SECURITY.
 - Role-shaped dashboards (Admin/Manager/Employee) — every number is a real query, not mock data.
 - Employee check-in/check-out with server-enforced rules: no double check-in, no check-out without check-in, no check-in on a weekend or on approved full-day leave.
 - Manager/Admin leave approvals: approve/reject with a required reason, self-approval forbidden, a manager acting on another team's request gets a 404 (not a 403 — no enumeration), a decided request can't be decided twice.
+- Employee leave: apply for leave (full/half day, live overlap rejection via a DB exclusion constraint, reason validation) and cancel pending/not-yet-started-approved requests, at `/app/leave`.
+- Admin: read-only Employees directory at `/app/employees` — search by name/email/ID, filter by department/status.
 - Real audit log writes on deactivation/approval/rejection (surfaced as Admin's "Recent activity").
 
-**Known limitation — not implemented** (see below): full Employees directory (list/search/add/edit/deactivate), a dedicated Attendance history page, a dedicated Leave apply/balance/cancel page, and the redesigned versions of those three pages from the late-arriving design export. The app shell, nav, and dashboards already exist and are real; these three modules are the gap. See `docs/PRD.md` for the full original functional requirement list.
+**Known limitation — not implemented** (see below): Employees add/edit/deactivate (list+search is real, mutation isn't), a dedicated Attendance history page, Leave balance/calendar tabs, and the full redesigned versions of these three pages from the late-arriving `other_pages.zip` design export (this ships a functional, token-compliant, reduced-fidelity version of Employees/Leave instead — no drawer, tabs, or calendar). See `docs/PRD.md` for the full original functional requirement list.
 
 ## Tech Stack
 
