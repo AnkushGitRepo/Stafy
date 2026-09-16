@@ -248,6 +248,18 @@ export async function cancelLeaveRequest(id) {
   }
 }
 
+export async function getAttendanceForDate(date) {
+  const res = await api(`/api/attendance?date=${date}`);
+  if (!res.ok) throw new ApiError('ATTENDANCE_LOAD_FAILED', res.status, 'Could not load attendance.');
+  return res.json();
+}
+
+export async function getMyAttendanceHistory() {
+  const res = await api('/api/attendance/mine');
+  if (!res.ok) throw new ApiError('ATTENDANCE_LOAD_FAILED', res.status, 'Could not load your attendance history.');
+  return res.json();
+}
+
 export async function getEmployees(filters = {}) {
   const params = new URLSearchParams(Object.entries(filters).filter(([, v]) => v));
   const qs = params.toString();

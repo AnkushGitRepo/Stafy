@@ -5,6 +5,7 @@ const RULES = {
   'attendance.self': () => true,
   'leave.self': () => true,
   'employees.read': (actor) => actor.role === 'admin',
+  'attendance.org.read': (actor) => actor.role === 'admin' || actor.role === 'manager',
   'leave.approvals.read': (actor) => actor.role === 'admin' || actor.role === 'manager',
   'leave.decide': (actor) => actor.role === 'admin' || actor.role === 'manager',
 };

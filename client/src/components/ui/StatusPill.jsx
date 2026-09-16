@@ -9,6 +9,7 @@ const STATUS_STYLES = {
   cancelled: { bg: 'var(--color-neutral-chip-bg)', fg: 'var(--color-neutral-dot)', dot: 'var(--color-neutral-dot)', label: 'Cancelled' },
   active: { bg: 'var(--color-success-chip-bg)', fg: 'var(--color-success)', dot: 'var(--color-success)', label: 'Active' },
   inactive: { bg: 'var(--color-neutral-chip-bg)', fg: 'var(--color-neutral-dot)', dot: 'var(--color-neutral-dot)', label: 'Inactive' },
+  weekend: { bg: 'var(--color-neutral-chip-bg)', fg: 'var(--color-neutral-dot)', dot: 'var(--color-neutral-dot)', label: 'Weekend' },
 };
 
 /** @param {{ status: keyof typeof STATUS_STYLES, label?: string }} props */
