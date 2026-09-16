@@ -81,4 +81,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Real Leave page for all roles: `/app/leave` now supports Admin and Manager accounts as well (balances, apply modal, cancellation).
 - Real Team page (Manager): dedicated `/app/team` view displaying direct reports and their current status.
 - Integration tests: `server/tests/integration/api.test.js` (Supertest) verifying auth guards and health checks; `npm test` now passes end-to-end.
+- Real Employees Add, Detail Drawer, and Deactivation: `POST /api/employees`, `GET /api/employees/:id`, `POST /api/employees/:id/deactivate` with BR-24 (block if active direct reports) and BR-25 (last active admin and self-deactivation protection). Dedicated slide-out drawer on `/app/employees`.
+- Real Audit Log page (Admin): `GET /api/audit-logs` and dedicated `/app/audit` view showing actor, action, entity type, and timestamp.
+- Real Employee Profile page: `GET /api/auth/profile`, `PATCH /api/auth/profile` (BR-22: phone only) and dedicated `/app/profile` view.
+
 

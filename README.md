@@ -29,13 +29,14 @@ Demo credentials are intentionally public for evaluation — see `docs/SECURITY.
 - Employee check-in/check-out with server-enforced rules: no double check-in, no check-out without check-in, no check-in on a weekend or on approved full-day leave.
 - Manager/Admin leave approvals: approve/reject with a required reason, self-approval forbidden, a manager acting on another team's request gets a 404 (not a 403 — no enumeration), a decided request can't be decided twice — accessible via dashboard and dedicated `/app/approvals` queue.
 - Leave management at `/app/leave` (all roles): apply for leave (full/half day, live overlap rejection via a DB exclusion constraint, reason validation), cancel pending/not-yet-started-approved requests, and a real balance meter per leave type.
-- Admin: read-only Employees directory at `/app/employees` — search by name/email/ID, filter by department/status.
+- Admin: Employees directory at `/app/employees` — search by name/email/ID, filter by department/status, click to view detail drawer, add employee modal, and deactivation with BR-24 (reports check) and BR-25 (last admin check).
 - Manager: dedicated team list at `/app/team` showing direct reports and today's status.
+- Employee Profile at `/app/profile`: view personal profile and update phone number (BR-22).
+- Admin Audit Log at `/app/audit`: full historical audit trail of security and mutation events.
 - Attendance at `/app/attendance`: Admin (org-wide) and Manager (team-scoped) get a single-day table with prev/next date navigation and 4 summary cards (Present/Half Day/Absent/On Leave); Employee gets their own last-30-days history.
-- Real audit log writes on deactivation/approval/rejection (surfaced as Admin's "Recent activity").
+- Real audit log writes on deactivation/approval/rejection/creation.
 
-
-**Known limitation — not implemented** (see below): Employees add/edit/deactivate (list+search is real, mutation isn't), Attendance search/department filter, Leave balance/calendar tabs, and the full redesigned versions of these three pages from the late-arriving `other_pages.zip` design export (this ships functional, token-compliant, reduced-fidelity versions instead — no detail drawer, tabs, or calendar). See `docs/PRD.md` for the full original functional requirement list.
+**Known limitation — not implemented** (see below): Attendance search/department filter on day view, Leave calendar tabs, and the full multi-month calendar visual from the late-arriving `other_pages.zip` design export (this ships functional, token-compliant, reduced-fidelity versions instead). See `docs/PRD.md` for the full original functional requirement list.
 
 ## Tech Stack
 

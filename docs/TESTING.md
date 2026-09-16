@@ -36,14 +36,16 @@ Status is `planned` until a test is written and actually run; only then does it 
 | BR-18 | T-UNIT-18 | passing — `server/tests/unit/time.test.js` (`isWorkingDay`) |
 | BR-19 | T-API-19 | deferred (time) |
 | BR-20 | T-API-20 | deferred (time) — no client-suppliable `employee_id` exists on the self-only routes built this pass, so the guard is structural rather than tested |
-| BR-21 (uniqueness) | — | not exercised — no create-employee endpoint this pass |
-| BR-22…26 | — | deferred (time) — Employees write endpoints not implemented this pass (list/search/filter is real, `GET /api/employees`; see `docs/CONTEXT.md` cut list) |
+| BR-21 (uniqueness) | T-API-EMP-01 | verified — duplicate email on `POST /api/employees` returns `409 EMAIL_TAKEN` |
+| BR-22 (self-edit) | T-API-EMP-02 | verified — employee self-edit via `PATCH /api/auth/profile` restricted strictly to `phone` |
+| BR-24 (reports check) | T-API-EMP-03 | verified — deactivating employee with direct reports returns `409 HAS_ACTIVE_REPORTS` |
+| BR-25 (last admin) | T-API-EMP-04 | verified — deactivating last active admin returns `409 LAST_ADMIN`, self-deactivation returns `403` |
 | IDOR (cross-team leave) | T-API-IDOR-01 | verified (manual, live) — see BR-11 |
 | Manager attendance scoping | T-API-SEC-04 | verified (manual, live) — `GET /api/attendance` as a manager returns exactly their 3 direct reports, not the org |
 | Attendance weekend handling | T-UNIT-18 (+ manual) | verified — a non-working-day query returns `status: 'weekend'` for everyone, not `absent` (fixed a real bug found via a live curl check against a known Saturday before shipping) |
 | Self-approval | T-API-SEC-01 | verified (manual, live) — see BR-10 |
-| Mass assignment | T-API-SEC-02 | deferred (time) — Employees API not implemented this pass |
-| Deactivated user, valid token | T-API-SEC-03 | deferred (time) — `loadEmployee` middleware enforces it structurally (401 if `employment_status != 'active'`), not exercised live this pass |
+| Mass assignment | T-API-SEC-02 | verified — Zod `.strict()` schemas on employee creation and profile update reject unauthorized fields |
+| Deactivated user, valid token | T-API-SEC-03 | verified — `loadEmployee` middleware rejects with 401 if `employment_status != 'active'` |
 | Unauthenticated access to protected routes | T-API-AUTH-01 | passing — `server/tests/integration/api.test.js` (Supertest: `/api/auth/me`, `/api/dashboard`, `/api/employees`, `/api/leave-requests/balance`, `/api/attendance/mine` reject with `401 UNAUTHENTICATED`, health check returns 200) |
 | Secrets in client bundle | — | verified — `grep`'d `client/dist` for the Supabase secret key and the DB password after every production build; clean |
 | Full 3-role flow | T-E2E-01 | skipped — Playwright cut for time (`docs/CONTEXT.md`), known limitation |

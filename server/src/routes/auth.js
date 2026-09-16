@@ -56,4 +56,52 @@ router.get('/me', authenticate, loadEmployee, (req, res) => {
   res.json({ data: shapeProfile(req.actor) });
 });
 
+router.get('/profile', authenticate, loadEmployee, async (req, res, next) => {
+  try {
+    const { rows } = await getPool().query(
+      `select e.id, e.employee_code, e.full_name, e.email, e.phone, e.designation, e.joining_date, e.employment_status, e.role,
+              d.name as department_name, m.full_name as manager_name
+       from employees e
+       left join departments d on d.id = e.department_id
+       left join employees m on m.id = e.manager_id
+       where e.id = $1`,
+      [req.actor.id],
+    );
+    const p = rows[0];
+    if (!p) throw new AppError('NOT_FOUND', 404, 'Employee profile not found.');
+
+    res.json({
+      data: {
+        id: p.id,
+        code: p.employee_code,
+        name: p.full_name,
+        email: p.email,
+        phone: p.phone ?? '',
+        designation: p.designation ?? '—',
+        department: p.department_name ?? '—',
+        manager: p.manager_name ?? '—',
+        joiningDate: p.joining_date,
+        status: p.employment_status,
+        role: p.role,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const profileUpdateSchema = z.object({
+  phone: z.string().min(5).max(20).nullable().optional(),
+}).strict();
+
+router.patch('/profile', authenticate, loadEmployee, validate(profileUpdateSchema), async (req, res, next) => {
+  try {
+    const { phone } = req.body;
+    await getPool().query(`update employees set phone = $1 where id = $2`, [phone ?? null, req.actor.id]);
+    res.json({ data: { phone: phone ?? '' } });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

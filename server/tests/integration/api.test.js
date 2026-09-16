@@ -40,6 +40,24 @@ describe('Integration: API endpoint protection & health', () => {
     expect(res.body.error?.code).toBe('UNAUTHENTICATED');
   });
 
+  it('GET /api/audit-logs rejects unauthenticated requests with 401', async () => {
+    const res = await request(app).get('/api/audit-logs');
+    expect(res.status).toBe(401);
+    expect(res.body.error?.code).toBe('UNAUTHENTICATED');
+  });
+
+  it('GET /api/auth/profile rejects unauthenticated requests with 401', async () => {
+    const res = await request(app).get('/api/auth/profile');
+    expect(res.status).toBe(401);
+    expect(res.body.error?.code).toBe('UNAUTHENTICATED');
+  });
+
+  it('POST /api/employees rejects unauthenticated requests with 401', async () => {
+    const res = await request(app).post('/api/employees').send({ fullName: 'Test' });
+    expect(res.status).toBe(401);
+    expect(res.body.error?.code).toBe('UNAUTHENTICATED');
+  });
+
   it('Non-existent API route returns 404 NOT_FOUND', async () => {
     const res = await request(app).get('/api/non-existent-route');
     expect(res.status).toBe(404);

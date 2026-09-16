@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
 import employeesRoutes from './routes/employees.js';
 import leaveRoutes from './routes/leave.js';
+import auditRoutes from './routes/audit.js';
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/attendance', attendanceHistoryRoutes);
 app.use('/api/leave-requests', leaveRoutes);
 app.use('/api/employees', employeesRoutes);
+app.use('/api/audit-logs', auditRoutes);
 
 app.use('/api', (req, res) => {
   res.status(404).json({

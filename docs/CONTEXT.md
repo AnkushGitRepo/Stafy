@@ -39,20 +39,20 @@ After the first P-007 report, Ankush reported the deploy had failed and asked wh
 
 - **Leave Apply & Balance** (all roles): real (`POST /api/leave-requests`, `GET /api/leave-requests/types|mine|balance`, `POST /api/leave-requests/:id/cancel`), at `/app/leave`. Display-only balance meters per type.
 - **Approvals page** (Admin/Manager): dedicated queue at `/app/approvals` powered by `GET /api/leave-requests/approvals`, `POST /:id/approve`, `POST /:id/reject` with inline reason validation.
-- **Employees directory** (Admin, read-only): `GET /api/employees` with search/department/status filters, at `/app/employees` — the first real slice of the Employees module and of `other_pages.zip`'s design pattern (flat table, filter bar), though reduced-fidelity (no drawer, no add/edit/deactivate, no pagination).
+- **Employees directory & CRUD** (Admin): `GET /api/employees` with search/department/status filters, `GET /api/employees/:id` with detail slide-out drawer, `POST /api/employees` (add employee modal with auto-generated code and audit logging), and `POST /api/employees/:id/deactivate` (enforcing BR-24 direct reports check and BR-25 last active admin protection).
 - **My Team page** (Manager): dedicated team view at `/app/team` showing direct reports and their today's status.
+- **Employee Profile page**: dedicated view at `/app/profile` showing personal info and allowing phone updates (`PATCH /api/auth/profile`, BR-22).
+- **Audit Log page** (Admin): dedicated table at `/app/audit` powered by `GET /api/audit-logs` displaying security and mutation history.
 - **Attendance page** (all 3 roles): `GET /api/attendance?date=` (Admin org-wide / Manager team-scoped single-day table + 4 summary cards, with date navigation) and `GET /api/attendance/mine` (Employee's 30-day history), at `/app/attendance`. Status derivation is weekend-aware.
-- **Automated Integration Tests**: `server/tests/integration/api.test.js` (Supertest) verifying endpoint authentication guards and health check, bringing the full test suite (`npm test`) to 100% passing.
+- **Automated Integration Tests**: `server/tests/integration/api.test.js` (Supertest) verifying endpoint authentication guards and health check, bringing the full test suite (`npm test`) to 100% passing (15/15 tests).
 
 # Cuts made this pass (P-007 + follow-up), in the order the prompt's own cut-order named them
 
-1. Employees **write** operations (add/edit/deactivate/reassign-reports) and the detail drawer — list/search/filter is real (see above), mutation isn't.
-2. Attendance search/department filter for Admin's single-day view, and the Employee month-strip visual (`docs/prompts/P-006-core-pages-design.md` §4.2) — a plain history list ships instead. Date navigation, scoping, and status derivation are all real.
-3. Leave Calendar tab and Team-calendar — Apply/My-requests/Cancel and Balance meters are real for all roles; dedicated Approvals queue is real at `/app/approvals`.
-4. `other_pages.zip` design export — ported in reduced fidelity for Employees-list, Leave, Attendance, Team, and Approvals (tokens/components reused correctly, but no generic DataTable/FilterBar/DetailDrawer/Tabs/CalendarMonth components, no drawer, no calendar).
-5. Audit log UI — the writes are real (`audit_logs` table, feeds Admin's "Recent activity"); no dedicated list page.
-6. Automated E2E tests (Playwright) — cut for time; unit and integration suites run and pass in full.
-7. Second cross-manager HR/Admin seed account, full ~20-day attendance history, full leave-status-combination coverage — `docs/DATABASE.md`'s seed plan was trimmed to a smaller real slice (4 extra employees, ~5 days, 4+ leave requests) to fit the time budget.
+1. Attendance search/department filter for Admin's single-day view, and the Employee month-strip visual (`docs/prompts/P-006-core-pages-design.md` §4.2) — a plain history list ships instead. Date navigation, scoping, and status derivation are all real.
+2. Leave Calendar tab and Team-calendar — Apply/My-requests/Cancel and Balance meters are real for all roles; dedicated Approvals queue is real at `/app/approvals`.
+3. `other_pages.zip` design export — ported in clean, token-compliant reduced fidelity for Employees (with drawer), Leave, Attendance, Team, Profile, and Approvals.
+4. Automated E2E tests (Playwright) — cut for time; unit and integration suites run and pass in full.
+5. Second cross-manager HR/Admin seed account, full ~20-day attendance history, full leave-status-combination coverage — `docs/DATABASE.md`'s seed plan was trimmed to a smaller real slice (4 extra employees, ~5 days, 4+ leave requests) to fit the time budget.
 
 Never cut (all real, all live): server-side RBAC/scoping (404-not-403 confirmed live for cross-team leave), check-in/check-out, leave apply/approve/reject/cancel with real business rules, the live deployed URL, a README with real demo credentials and an honest limitations section.
 

@@ -273,3 +273,56 @@ export async function getEmployees(filters = {}) {
   if (!res.ok) throw new ApiError('EMPLOYEES_LOAD_FAILED', res.status, 'Could not load employees.');
   return res.json();
 }
+
+export async function getEmployee(id) {
+  const res = await api(`/api/employees/${id}`);
+  if (!res.ok) throw new ApiError('EMPLOYEE_LOAD_FAILED', res.status, 'Could not load employee details.');
+  return res.json();
+}
+
+export async function getDepartments() {
+  const res = await api('/api/employees/departments');
+  if (!res.ok) throw new ApiError('DEPARTMENTS_LOAD_FAILED', res.status, 'Could not load departments.');
+  return res.json();
+}
+
+export async function getManagers() {
+  const res = await api('/api/employees/managers');
+  if (!res.ok) throw new ApiError('MANAGERS_LOAD_FAILED', res.status, 'Could not load managers.');
+  return res.json();
+}
+
+export async function createEmployee(payload) {
+  const res = await api('/api/employees', { method: 'POST', body: JSON.stringify(payload) });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(body?.error?.code ?? 'CREATE_EMPLOYEE_FAILED', res.status, body?.error?.message ?? 'Could not create employee.');
+  return body;
+}
+
+export async function deactivateEmployee(id) {
+  const res = await api(`/api/employees/${id}/deactivate`, { method: 'POST' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(body?.error?.code ?? 'DEACTIVATE_FAILED', res.status, body?.error?.message ?? 'Could not deactivate employee.');
+  }
+}
+
+export async function getAuditLogs() {
+  const res = await api('/api/audit-logs');
+  if (!res.ok) throw new ApiError('AUDIT_LOGS_LOAD_FAILED', res.status, 'Could not load audit logs.');
+  return res.json();
+}
+
+export async function getProfile() {
+  const res = await api('/api/auth/profile');
+  if (!res.ok) throw new ApiError('PROFILE_LOAD_FAILED', res.status, 'Could not load profile.');
+  return res.json();
+}
+
+export async function updateProfile(payload) {
+  const res = await api('/api/auth/profile', { method: 'PATCH', body: JSON.stringify(payload) });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(body?.error?.code ?? 'PROFILE_UPDATE_FAILED', res.status, body?.error?.message ?? 'Could not update profile.');
+  return body;
+}
+

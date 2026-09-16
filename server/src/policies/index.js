@@ -8,6 +8,9 @@ const RULES = {
   'attendance.org.read': (actor) => actor.role === 'admin' || actor.role === 'manager',
   'leave.approvals.read': (actor) => actor.role === 'admin' || actor.role === 'manager',
   'leave.decide': (actor) => actor.role === 'admin' || actor.role === 'manager',
+  'audit.read': (actor) => actor.role === 'admin',
+  'employees.write': (actor) => actor.role === 'admin',
+  'profile.self': () => true,
 };
 
 /** @param {{ role: string }} actor @param {keyof typeof RULES} action */
