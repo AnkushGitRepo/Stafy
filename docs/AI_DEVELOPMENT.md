@@ -77,4 +77,4 @@ One entry per meaningful prompt. The README "AI Development Process" section is 
   Closed out honestly: `README.md` filled in completely (live URL, real demo credentials, features vs. known limitations, setup, AI dev/review process); `CHANGELOG.md` and `docs/CONTEXT.md` updated with the real done/not-done state and every cut explicitly listed with its reason, per the prompt's own §7/§8 requirements.
 - **What I accepted**: TO BE FILLED BY ANKUSH
 - **What I changed or rejected**: TO BE FILLED BY ANKUSH
-- **Commit(s)**: TO BE FILLED AFTER COMMIT
+- **Commit(s)**: `d6b3654`, `38608ef`, `1421835`, `f730e41`, `b5a825a`, `5dd254d`
