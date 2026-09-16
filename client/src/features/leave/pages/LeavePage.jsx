@@ -7,7 +7,28 @@ import { PageHeader } from '../../../components/ui/PageHeader.jsx';
 import { Skeleton } from '../../../components/ui/Skeleton.jsx';
 import { StatusPill } from '../../../components/ui/StatusPill.jsx';
 import { useAuth } from '../../../lib/authContext.jsx';
-import { applyForLeave, cancelLeaveRequest, getLeaveTypes, getMyLeaveRequests } from '../../../lib/api.js';
+import { applyForLeave, cancelLeaveRequest, getLeaveBalance, getLeaveTypes, getMyLeaveRequests } from '../../../lib/api.js';
+
+function BalanceMeter({ name, quota, used, remaining }) {
+  const pct = quota ? Math.min(100, Math.round((used / quota) * 100)) : 0;
+  return (
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3) var(--space-4)', flex: '1 1 160px' }}>
+      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{name}</div>
+      {quota === null ? (
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted-2)' }}>No limit · {used} used</div>
+      ) : (
+        <>
+          <div style={{ height: 6, borderRadius: 999, background: 'var(--color-surface-2)', overflow: 'hidden', marginBottom: 6 }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: 'var(--color-accent)', borderRadius: 999 }} />
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted-2)' }}>
+            {remaining} of {quota} days remaining
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 import { ComingSoonPage } from '../../dashboard/components/ComingSoonPage.jsx';
 
 function ApplyLeaveModal({ leaveTypes, onClose, onSubmit, submitting, errorText }) {
@@ -133,6 +154,10 @@ function EmployeeLeavePage() {
     queryKey: ['leave', 'types'],
     queryFn: () => getLeaveTypes().then((r) => r.data),
   });
+  const { data: balance } = useQuery({
+    queryKey: ['leave', 'balance'],
+    queryFn: () => getLeaveBalance().then((r) => r.data),
+  });
 
   const applyMutation = useMutation({
     mutationFn: applyForLeave,
@@ -164,6 +189,14 @@ function EmployeeLeavePage() {
           </Button>
         }
       />
+
+      {balance && (
+        <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', marginBottom: 'var(--space-6)' }}>
+          {balance.map((b) => (
+            <BalanceMeter key={b.id} {...b} />
+          ))}
+        </div>
+      )}
 
       {isLoading && (
         <div className="card">

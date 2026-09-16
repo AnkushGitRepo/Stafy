@@ -227,6 +227,12 @@ export async function getLeaveTypes() {
   return res.json();
 }
 
+export async function getLeaveBalance() {
+  const res = await api('/api/leave-requests/balance');
+  if (!res.ok) throw new ApiError('BALANCE_LOAD_FAILED', res.status, 'Could not load your leave balance.');
+  return res.json();
+}
+
 export async function getMyLeaveRequests() {
   const res = await api('/api/leave-requests/mine');
   if (!res.ok) throw new ApiError('LEAVE_LOAD_FAILED', res.status, 'Could not load your leave requests.');

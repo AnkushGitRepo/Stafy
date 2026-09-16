@@ -24,6 +24,37 @@ router.get('/types', authenticate, loadEmployee, authorize('leave.self'), async 
   }
 });
 
+// Balance = annual_quota - sum(days) of this calendar year's approved
+// requests of that type, in scope for the requesting employee only.
+// Unpaid has no quota ("No limit"). Display-only this pass — apply doesn't
+// enforce it yet (BR-07 partial: shown, not blocking).
+router.get('/balance', authenticate, loadEmployee, authorize('leave.self'), async (req, res, next) => {
+  try {
+    const { rows } = await getPool().query(
+      `select lt.id, lt.name, lt.annual_quota, lt.is_paid,
+              coalesce(sum(lr.days) filter (
+                where lr.status = 'approved' and extract(year from lr.start_date) = extract(year from (now() at time zone 'Asia/Kolkata'))
+              ), 0) as used
+       from leave_types lt
+       left join leave_requests lr on lr.leave_type_id = lt.id and lr.employee_id = $1
+       group by lt.id, lt.name, lt.annual_quota, lt.is_paid
+       order by lt.name`,
+      [req.actor.id],
+    );
+    res.json({
+      data: rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        quota: r.annual_quota === null ? null : Number(r.annual_quota),
+        used: Number(r.used),
+        remaining: r.annual_quota === null ? null : Number(r.annual_quota) - Number(r.used),
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/mine', authenticate, loadEmployee, authorize('leave.self'), async (req, res, next) => {
   try {
     const { rows } = await getPool().query(
