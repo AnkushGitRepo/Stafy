@@ -1,9 +1,11 @@
 import { AppError } from '../lib/errors.js';
+import { can } from '../policies/index.js';
 
-// TODO(P1): call can(actor, action, resource?) from server/src/policies/.
-// Never inline a role === '...' check in a route (docs/AGENTS.md §4).
-export function authorize(_policy) {
+// Never inline a role === '...' check in a route (docs/AGENTS.md §4) — always
+// go through policies/can().
+export function authorize(policy) {
   return function authorizeMiddleware(req, res, next) {
-    throw new AppError('NOT_IMPLEMENTED', 501, 'authorize middleware not implemented yet');
+    if (!can(req.actor, policy)) return next(new AppError('FORBIDDEN', 403, 'Not allowed.'));
+    next();
   };
 }

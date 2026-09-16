@@ -1,29 +1,31 @@
 // IST (Asia/Kolkata) time helpers. All "today"/work-date logic in the app
 // must go through this file — never trust a client-supplied date/time
-// (docs/DECISIONS.md ADR-011).
+// (docs/DECISIONS.md ADR-011). Uses Intl with an explicit timeZone rather
+// than manual UTC-offset arithmetic, so this is correct regardless of the
+// host runtime's own local timezone (an earlier offset-math version broke
+// outside a UTC-local environment).
+const IST_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 
-/**
- * Returns the current instant as an IST-local Date-equivalent.
- * @returns {Date}
- */
+/** @returns {Date} the current instant (use with workDateInIst/isWorkingDay for IST-local logic) */
 export function nowInIst() {
-  throw new Error('TODO(P1): implement nowInIst — see docs/DECISIONS.md ADR-011');
+  return new Date();
 }
 
 /**
- * Derives the IST calendar work_date (YYYY-MM-DD) for a given instant.
  * @param {Date} [at]
- * @returns {string}
+ * @returns {string} YYYY-MM-DD, the IST calendar date for the given instant
  */
-export function workDateInIst(at) {
-  throw new Error('TODO(P1): implement workDateInIst — see docs/DECISIONS.md ADR-011');
+export function workDateInIst(at = new Date()) {
+  return IST_DATE_FORMATTER.format(at); // en-CA formats as YYYY-MM-DD
 }
 
-/**
- * Monday-Friday check in IST for a given work_date.
- * @param {string} workDate
- * @returns {boolean}
- */
+/** @param {string} workDate YYYY-MM-DD @returns {boolean} */
 export function isWorkingDay(workDate) {
-  throw new Error('TODO(P1): implement isWorkingDay — see docs/DECISIONS.md ADR-011');
+  const day = new Date(`${workDate}T00:00:00Z`).getUTCDay();
+  return day !== 0 && day !== 6;
 }

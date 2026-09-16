@@ -1,9 +1,14 @@
 import { AppError } from '../lib/errors.js';
 
-// TODO(P1): parse/strip req.body (or req.query) against a per-route,
-// per-role Zod .strict() schema (docs/AGENTS.md §4, BR-22).
-export function validate(_schema) {
+// Parses/replaces req.body against a per-route Zod .strict() schema — any
+// field not in the schema is rejected, not silently ignored (BR-20, BR-22).
+export function validate(schema) {
   return function validateMiddleware(req, res, next) {
-    throw new AppError('NOT_IMPLEMENTED', 501, 'validate middleware not implemented yet');
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return next(new AppError('VALIDATION_ERROR', 400, 'Invalid input.', result.error.flatten()));
+    }
+    req.body = result.data;
+    next();
   };
 }
