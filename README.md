@@ -30,9 +30,10 @@ Demo credentials are intentionally public for evaluation — see `docs/SECURITY.
 - Manager/Admin leave approvals: approve/reject with a required reason, self-approval forbidden, a manager acting on another team's request gets a 404 (not a 403 — no enumeration), a decided request can't be decided twice.
 - Employee leave: apply for leave (full/half day, live overlap rejection via a DB exclusion constraint, reason validation) and cancel pending/not-yet-started-approved requests, at `/app/leave`.
 - Admin: read-only Employees directory at `/app/employees` — search by name/email/ID, filter by department/status.
+- Attendance at `/app/attendance`: Admin (org-wide) and Manager (team-scoped) get a single-day table with prev/next date navigation and 4 summary cards (Present/Half Day/Absent/On Leave); Employee gets their own last-30-days history.
 - Real audit log writes on deactivation/approval/rejection (surfaced as Admin's "Recent activity").
 
-**Known limitation — not implemented** (see below): Employees add/edit/deactivate (list+search is real, mutation isn't), a dedicated Attendance history page, Leave balance/calendar tabs, and the full redesigned versions of these three pages from the late-arriving `other_pages.zip` design export (this ships a functional, token-compliant, reduced-fidelity version of Employees/Leave instead — no drawer, tabs, or calendar). See `docs/PRD.md` for the full original functional requirement list.
+**Known limitation — not implemented** (see below): Employees add/edit/deactivate (list+search is real, mutation isn't), Attendance search/department filter, Leave balance/calendar tabs, and the full redesigned versions of these three pages from the late-arriving `other_pages.zip` design export (this ships functional, token-compliant, reduced-fidelity versions instead — no detail drawer, tabs, or calendar). See `docs/PRD.md` for the full original functional requirement list.
 
 ## Tech Stack
 

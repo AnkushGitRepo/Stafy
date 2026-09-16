@@ -39,6 +39,8 @@ Status is `planned` until a test is written and actually run; only then does it 
 | BR-21 (uniqueness) | — | not exercised — no create-employee endpoint this pass |
 | BR-22…26 | — | deferred (time) — Employees write endpoints not implemented this pass (list/search/filter is real, `GET /api/employees`; see `docs/CONTEXT.md` cut list) |
 | IDOR (cross-team leave) | T-API-IDOR-01 | verified (manual, live) — see BR-11 |
+| Manager attendance scoping | T-API-SEC-04 | verified (manual, live) — `GET /api/attendance` as a manager returns exactly their 3 direct reports, not the org |
+| Attendance weekend handling | T-UNIT-18 (+ manual) | verified — a non-working-day query returns `status: 'weekend'` for everyone, not `absent` (fixed a real bug found via a live curl check against a known Saturday before shipping) |
 | Self-approval | T-API-SEC-01 | verified (manual, live) — see BR-10 |
 | Mass assignment | T-API-SEC-02 | deferred (time) — Employees API not implemented this pass |
 | Deactivated user, valid token | T-API-SEC-03 | deferred (time) — `loadEmployee` middleware enforces it structurally (401 if `employment_status != 'active'`), not exercised live this pass |
