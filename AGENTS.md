@@ -59,6 +59,8 @@ Before implementing any leave/attendance/employee endpoint, list the BR-IDs it m
 - UI guards (route guards, hidden buttons) are never the only authorization check.
 - Follow `docs/DESIGN.md` anti-slop and motion rules for any visual/animation work.
 - `alt` on every `<img>` (empty `alt=""` for decorative images).
+- When porting a Claude Design `.dc.html` source into React, grep the ported files for `window.gsap`, `window.ScrollTrigger`, and `window.Flip` before calling the port done — the design source loads GSAP via a CDN `<script>` (global), but the app imports it as an npm module, so any leftover `window.*` reference silently no-ops with no console error (AICR-002).
+- When a design prompt (`docs/prompts/P-0XX-*-design.md`) is approved before its implementation prompt runs, the implementation must diff its shipped nav/metric list against that design prompt's exact spec — not just eyeball it — before the task is marked done. A prior implementation can silently under-ship an already-approved spec with no error to flag it (AICR-003).
 
 ## 7. Definition of Done (per task)
 

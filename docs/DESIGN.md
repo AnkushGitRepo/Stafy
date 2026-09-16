@@ -1,4 +1,4 @@
-> Status: Approved   ·   Last updated: 2026-09-15 22:45 IST   ·   Owner: Ankush
+> Status: Approved   ·   Last updated: 2026-09-15 23:30 IST   ·   Owner: Ankush
 > Related: docs/DECISIONS.md ADR-017, ADR-025, docs/PHASES.md P2, docs/prompts/P-002-brand-and-landing-design.md
 
 # Design system
@@ -211,29 +211,29 @@ Focus-visible styles (`outline: 2px solid var(--color-accent)`), keyboard paths 
 ## Open items for P-003 / build phases
 
 - `{{SITE_URL}}` (canonical URL, OG/Twitter image URLs) stays a placeholder until the Vercel deploy exists (P1 exit criteria) — not blocking for the UI port itself.
-- `{{REPO_URL}}` already resolves to `https://github.com/AnkushGitRepo/Stafy` as a tweak default — carry that literal value into the ported code.
-- The 1200×630 social preview and the 180×180 apple-touch icon exist as an HTML/SVG mockup in the Brand Assets canvas; they need rasterizing (e.g. via a headless screenshot or export) before deploy. Everything else ships as SVG.
-- **Lighthouse risk, flagged by the design itself**: GSAP + ScrollTrigger + Flip is roughly 70KB gzipped, plus two Google Fonts families add two extra requests. Mitigations to apply in P-003/P2: self-host and subset both fonts; consider dropping Flip and using a plain crossfade for the role-switcher metrics if the bundle-size hit isn't worth it. Check this against the P2 Lighthouse ≥90 requirement before calling that phase done.
-- The design's `<script>` tags reference GSAP/ScrollTrigger/Flip via `cdn.jsdelivr.net` (fine for the real deployed site once P-003 wires them as real npm dependencies per `docs/ARCHITECTURE.md`'s approved list) — the CDN `<script src>` tags themselves won't execute inside the Claude Design canvas's sandboxed preview (no third-party script egress there), so the interactive motion only fully plays once ported into the real app, not inside the design canvas preview.
+- `{{REPO_URL}}` resolved to `https://github.com/AnkushGitRepo/Stafy` in the ported code (footer links, "See all 26 business rules" link).
+- The 1200×630 social preview and the 180×180 apple-touch icon exist as an HTML/SVG mockup in the Brand Assets canvas; they still need rasterizing (e.g. via a headless screenshot or export) before deploy. Everything else ships as SVG.
+- **Lighthouse risk, flagged by the design itself — resolved in P-003**: GSAP + ScrollTrigger + Flip plus two Google Fonts families pushed the landing route's initial JS/render-blocking cost high enough to fail the ≥90 target (measured: Performance 81 before fixes). Two fixes applied, no library dropped: (1) route-level code-splitting (`React.lazy` in `App.jsx`) so auth/dashboard code no longer ships on the landing route — cut ~120KB of unused JS from the initial bundle; (2) the Google Fonts `<link>` changed from a render-blocking stylesheet to a `preload` + swap-on-load pattern (text still paints immediately via the fallback stack, swaps to the real faces once loaded) — removed ~450ms of render-blocking FCP/LCP time. Final measured scores (`npx lighthouse` against the production build): **Performance 93, Accessibility 97, Best Practices 100, SEO 100.** Font self-hosting/subsetting and dropping `Flip` were considered but not needed once these two fixes closed the gap.
+- The design's `<script>` tags referenced GSAP/ScrollTrigger/Flip via `cdn.jsdelivr.net` in the original `.dc.html` (correct for a standalone design-canvas preview) — the real app instead imports `gsap`, `gsap/ScrollTrigger`, and `gsap/Flip` as npm modules per `docs/ARCHITECTURE.md`'s approved dependency list. Several ported components initially still checked `window.ScrollTrigger`/`window.Flip` (a leftover from the CDN-global pattern) and silently no-opped; fixed during P-003 manual testing — see `docs/AI_CODE_REVIEW.md` AICR-002.
 
 ## Screen registry
 
 | Screen | Route | Roles | Design prompt ID | Impl prompt ID | Status |
 |---|---|---|---|---|---|
-| Landing | `/` | public | P-002 | P-003 | Design ready |
-| Login | `/login` | public | — (no dedicated design file; build from tokens per P-003 §5.1) | P-003 | Design ready (spec only) |
-| Account activation | `/activate` | public | — (no dedicated design file; build from tokens per P-003 §5.2) | P-003 | Design ready (spec only) |
-| Privacy | `/privacy` | public | TBD | TBD | not started |
-| Terms | `/terms` | public | TBD | TBD | not started |
-| 404 | `*` | public | TBD | TBD | placeholder exists (P0) |
-| App Shell | `/app` | any | — (spec only, P-003 §6) | P-003 | Design ready (spec only) |
-| Dashboard (admin/manager/employee variants) | `/app` | any | — (spec only, P-003 §6; role metrics/Can-Cannot lists reusable from `#roles`) | P-003 | Design ready (spec only) |
-| Employees list | `/app/employees` | admin | — (directory bento panel is a real preview) | TBD | Reference exists in landing `#product` |
+| Landing | `/` | public | P-002 | P-003 | UI built (real interactive port, mock data) |
+| Login | `/login` | public | — (built from tokens per P-003 §5.1) | P-003 | UI built (mock data) |
+| Account activation | `/activate` | public | — (built from tokens per P-003 §5.2) | P-003 | UI built (mock data) |
+| Privacy | `/privacy` | public | — (built from tokens per P-003 §4) | P-003 | UI built (real content) |
+| Terms | `/terms` | public | — (built from tokens per P-003 §4) | P-003 | UI built (real content) |
+| 404 | `*` | public | — (built from tokens per P-003 §4) | P-003 | UI built |
+| App Shell | `/app` | any | P-004 | P-005 | Implemented (mock data) |
+| Dashboard (admin/manager/employee variants) | `/app` | any | P-004 | P-005 | Implemented (mock data) |
+| Employees list | `/app/employees` | admin | — (directory bento panel is a real preview) | TBD | Nav → ComingSoonPage; real page not started |
 | Employee detail/edit | `/app/employees/:id` | admin | TBD | TBD | not started |
 | Add employee | `/app/employees/new` | admin | TBD | TBD | not started |
 | My profile | `/app/profile` | any | TBD | TBD | not started |
-| Attendance | `/app/attendance` | any | — (month-grid panel is a real preview) | TBD | Reference exists in landing `#product` |
-| Leave (my) | `/app/leave` | any | — (balance-meter panel is a real preview) | TBD | Reference exists in landing `#product` |
+| Attendance | `/app/attendance` | any | — (month-grid panel is a real preview) | TBD | Nav → ComingSoonPage; real page not started |
+| Leave (my) | `/app/leave` | any | — (balance-meter panel is a real preview) | TBD | Nav → ComingSoonPage; real page not started |
 | Apply leave | `/app/leave/new` | any | TBD | TBD | not started |
-| Approvals | `/app/approvals` | manager, admin | — (queue-row panel is a real preview) | TBD | Reference exists in landing `#product` |
-| Audit log | `/app/audit` | admin | — (audit-entry panel is a real preview) | TBD | Reference exists in landing `#product` |
+| Approvals | `/app/approvals` | manager, admin | — (queue-row panel is a real preview) | TBD | Nav → ComingSoonPage; real page not started |
+| Audit log | `/app/audit` | admin | — (audit-entry panel is a real preview) | TBD | Nav → ComingSoonPage; real page not started |
