@@ -1,49 +1,46 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import gsap from 'gsap';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 
+import { checkIn, checkOut, getTodayAttendance } from '../../../lib/api.js';
 import { useIstClock } from '../../../lib/useIstClock.js';
 
-function istNow() {
-  const d = new Date();
-  return new Date(d.getTime() + (d.getTimezoneOffset() + 330) * 60000);
+function formatIstTime(iso) {
+  return new Date(iso).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
 }
 
-function formatIstTime(date) {
-  const ist = new Date(date.getTime() + (date.getTimezoneOffset() + 330) * 60000);
-  let h = ist.getHours();
-  const m = String(ist.getMinutes()).padStart(2, '0');
-  const ap = h < 12 ? 'AM' : 'PM';
-  h = h % 12 || 12;
-  return `${h}:${m} ${ap}`;
-}
-
-function formatElapsed(ms) {
-  const mins = Math.floor(ms / 60000);
+function formatElapsed(sinceIso) {
+  const mins = Math.floor((Date.now() - new Date(sinceIso).getTime()) / 60000);
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
 /**
- * Employee dashboard's hero: live clock, check-in/out toggle, elapsed timer.
- * Check-in state is mock-only (local) — real check-in lands in P1 against
- * POST /api/attendance/check-in|out. Weekend disable is computed from the
- * real IST calendar date, not fabricated.
+ * Employee dashboard's hero: live clock, check-in/out toggle wired to the
+ * real attendance API (BR-14…BR-18 enforced server-side).
  */
 export function CheckInCard() {
   const clock = useIstClock();
-  const [checkedIn, setCheckedIn] = useState(false);
-  const [checkInAt, setCheckInAt] = useState(null);
-  const [, forceTick] = useState(0);
   const buttonRef = useRef(null);
+  const queryClient = useQueryClient();
 
-  const isWeekend = [0, 6].includes(istNow().getDay());
+  const { data } = useQuery({
+    queryKey: ['attendance', 'today'],
+    queryFn: () => getTodayAttendance().then((r) => r.data),
+    refetchInterval: 60000,
+  });
 
-  useEffect(() => {
-    if (!checkedIn) return undefined;
-    const id = setInterval(() => forceTick((t) => t + 1), 60000);
-    return () => clearInterval(id);
-  }, [checkedIn]);
+  const mutation = useMutation({
+    mutationFn: (action) => (action === 'in' ? checkIn() : checkOut()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance', 'today'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+
+  const checkedIn = Boolean(data?.check_in_at) && !data?.check_out_at;
+  const alreadyDoneToday = Boolean(data?.check_in_at) && Boolean(data?.check_out_at);
 
   const handleToggle = () => {
     if (buttonRef.current) {
@@ -52,20 +49,17 @@ export function CheckInCard() {
         gsap.fromTo(buttonRef.current, { scale: 0.98 }, { scale: 1, duration: 0.2, ease: 'power2.out' });
       });
     }
-    if (checkedIn) {
-      setCheckedIn(false);
-      setCheckInAt(null);
-    } else {
-      setCheckedIn(true);
-      setCheckInAt(Date.now());
-    }
+    mutation.mutate(checkedIn ? 'out' : 'in');
   };
 
   const dateStrLong = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 
   let statusText = "You're not checked in yet";
-  if (checkedIn) statusText = `Checked in at ${formatIstTime(new Date(checkInAt))} · ${formatElapsed(Date.now() - checkInAt)}`;
-  else if (isWeekend) statusText = "It's the weekend — check-in isn't required today";
+  if (mutation.isError) statusText = mutation.error.message;
+  else if (checkedIn) statusText = `Checked in at ${formatIstTime(data.check_in_at)} · ${formatElapsed(data.check_in_at)}`;
+  else if (alreadyDoneToday) statusText = `Checked in ${formatIstTime(data.check_in_at)} · out ${formatIstTime(data.check_out_at)}`;
+
+  const disabled = mutation.isPending || alreadyDoneToday;
 
   return (
     <div className="stfy-checkin-card">
@@ -76,21 +70,23 @@ export function CheckInCard() {
           {statusText}
         </div>
       </div>
-      <button
-        ref={buttonRef}
-        type="button"
-        className={`stfy-checkin-button${checkedIn ? ' is-checked-in' : ''}`}
-        aria-live="polite"
-        disabled={isWeekend && !checkedIn}
-        onClick={handleToggle}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" />
-          <line x1="12" y1="7" x2="12" y2="12" />
-          <line x1="12" y1="12" x2="16" y2="14" />
-        </svg>
-        {checkedIn ? 'Check out' : 'Check in'}
-      </button>
+      {!alreadyDoneToday && (
+        <button
+          ref={buttonRef}
+          type="button"
+          className={`stfy-checkin-button${checkedIn ? ' is-checked-in' : ''}`}
+          aria-live="polite"
+          disabled={disabled}
+          onClick={handleToggle}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <line x1="12" y1="7" x2="12" y2="12" />
+            <line x1="12" y1="12" x2="16" y2="14" />
+          </svg>
+          {checkedIn ? 'Check out' : 'Check in'}
+        </button>
+      )}
 
       <style>{`
         .stfy-checkin-card { background: var(--color-dark); border-radius: var(--radius-lg); padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-6); }

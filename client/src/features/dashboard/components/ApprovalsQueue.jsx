@@ -1,25 +1,30 @@
+import { useQueryClient } from '@tanstack/react-query';
 import gsap from 'gsap';
 import { useRef, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
 import { EmptyState } from '../../../components/ui/EmptyState.jsx';
 import { Skeleton } from '../../../components/ui/Skeleton.jsx';
+import { approveLeaveRequest, rejectLeaveRequest } from '../../../lib/api.js';
 
 const REASON_MIN_LENGTH = 10;
 
 /**
- * Manager's inline approve/reject queue. Approve/reject decisions are
- * mock-only (local state) — real approval lands in P1 against the leave
- * requests API (BR-10…BR-13).
- * @param {{ initialApprovals: Array<{ id: number, name: string, dates: string, type: string }>, loading?: boolean }} props
+ * Manager's inline approve/reject queue, wired to the real leave-requests
+ * API (BR-10…BR-13 enforced server-side, including 404-not-403 out-of-scope
+ * requests per ADR-008).
+ * @param {{ initialApprovals: Array<{ id: string, name: string, dates: string, type: string }>, loading?: boolean }} props
  */
 export function ApprovalsQueue({ initialApprovals, loading }) {
   const [approvals, setApprovals] = useState(initialApprovals);
   const [rejectingId, setRejectingId] = useState(null);
   const [reasonText, setReasonText] = useState('');
+  const [pendingId, setPendingId] = useState(null);
+  const [errorText, setErrorText] = useState('');
   const rowRefs = useRef(new Map());
+  const queryClient = useQueryClient();
 
-  const decide = (id) => {
+  const removeRow = (id) => {
     const node = rowRefs.current.get(id);
     const remove = () => setApprovals((prev) => prev.filter((a) => a.id !== id));
     if (!node) {
@@ -33,14 +38,26 @@ export function ApprovalsQueue({ initialApprovals, loading }) {
     mm.add('(prefers-reduced-motion: reduce)', remove);
   };
 
+  const decide = async (id, action, reason) => {
+    setPendingId(id);
+    setErrorText('');
+    try {
+      if (action === 'approve') await approveLeaveRequest(id);
+      else await rejectLeaveRequest(id, reason);
+      setRejectingId(null);
+      removeRow(id);
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    } catch (err) {
+      setErrorText(err.message ?? 'Something went wrong.');
+    } finally {
+      setPendingId(null);
+    }
+  };
+
   const rejectToggle = (id) => {
     setRejectingId((cur) => (cur === id ? null : id));
     setReasonText('');
-  };
-
-  const rejectSubmit = (id) => {
-    setRejectingId(null);
-    decide(id);
+    setErrorText('');
   };
 
   if (loading) {
@@ -65,9 +82,15 @@ export function ApprovalsQueue({ initialApprovals, loading }) {
 
   return (
     <div className="card">
+      {errorText && (
+        <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--color-danger-chip-bg)', color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>
+          {errorText}
+        </div>
+      )}
       {approvals.map((a, i) => {
         const isRejecting = rejectingId === a.id;
         const reasonInvalid = reasonText.trim().length < REASON_MIN_LENGTH;
+        const isBusy = pendingId === a.id;
         return (
           <div
             key={a.id}
@@ -83,11 +106,12 @@ export function ApprovalsQueue({ initialApprovals, loading }) {
                 {a.dates} · {a.type}
               </span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--space-2)' }}>
-                <Button variant="primary" onClick={() => decide(a.id)} style={{ minHeight: 32, padding: '0 var(--space-3)', fontSize: 'var(--font-size-xs)' }}>
+                <Button variant="primary" disabled={isBusy} onClick={() => decide(a.id, 'approve')} style={{ minHeight: 32, padding: '0 var(--space-3)', fontSize: 'var(--font-size-xs)' }}>
                   Approve
                 </Button>
                 <Button
                   variant="secondary"
+                  disabled={isBusy}
                   onClick={() => rejectToggle(a.id)}
                   aria-expanded={isRejecting}
                   style={{ minHeight: 32, padding: '0 var(--space-3)', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}
@@ -109,8 +133,8 @@ export function ApprovalsQueue({ initialApprovals, loading }) {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={reasonInvalid}
-                  onClick={() => rejectSubmit(a.id)}
+                  disabled={reasonInvalid || pendingId === a.id}
+                  onClick={() => decide(a.id, 'reject', reasonText.trim())}
                   style={{ background: 'var(--color-danger)', minHeight: 36, padding: '0 var(--space-3)', fontSize: 'var(--font-size-xs)' }}
                 >
                   Confirm

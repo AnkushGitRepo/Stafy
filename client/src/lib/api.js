@@ -10,7 +10,7 @@ import { getDashboardForRole } from '../mocks/dashboardData.js';
 import { clearSession, getSession, setSession } from '../mocks/session.js';
 import { DEMO_USERS, findUserByEmail, MOCK_INVITE } from '../mocks/users.js';
 
-export const USE_MOCKS = true;
+export const USE_MOCKS = false;
 
 export class ApiError extends Error {
   constructor(code, status, message) {
@@ -56,7 +56,14 @@ export async function api(path, options = {}) {
 
   let res = await doFetch();
 
-  if (res.status === 401 && path !== '/api/auth/refresh') {
+  // /api/auth/me is how the app checks "am I logged in" on every page load,
+  // including public pages — a 401 there just means "signed out", never a
+  // reason to redirect (that used to bounce anonymous visitors on /login
+  // into an infinite reload loop: 401 -> redirect to /login -> getMe() runs
+  // again -> 401 -> redirect... AICR-004).
+  const skipRedirect = path === '/api/auth/refresh' || path === '/api/auth/me';
+
+  if (res.status === 401 && !skipRedirect) {
     const refreshRes = await refreshSession();
     if (refreshRes.ok) {
       res = await doFetch();
@@ -171,4 +178,45 @@ export async function getDashboard(role) {
   const res = await api('/api/dashboard');
   if (!res.ok) throw new ApiError('DASHBOARD_LOAD_FAILED', res.status, 'Could not load the dashboard.');
   return res.json();
+}
+
+// --- Attendance (P-007) --------------------------------------------------
+
+export async function getTodayAttendance() {
+  const res = await api('/api/attendance/today');
+  if (!res.ok) throw new ApiError('ATTENDANCE_LOAD_FAILED', res.status, 'Could not load today’s attendance.');
+  return res.json();
+}
+
+export async function checkIn() {
+  const res = await api('/api/attendance/check-in', { method: 'POST' });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(body?.error?.code ?? 'CHECK_IN_FAILED', res.status, body?.error?.message ?? 'Could not check in.');
+  return body;
+}
+
+export async function checkOut() {
+  const res = await api('/api/attendance/check-out', { method: 'POST' });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(body?.error?.code ?? 'CHECK_OUT_FAILED', res.status, body?.error?.message ?? 'Could not check out.');
+  return body;
+}
+
+// --- Leave approvals (P-007) ----------------------------------------------
+
+export async function getApprovals() {
+  const res = await api('/api/leave-requests/approvals');
+  if (!res.ok) throw new ApiError('APPROVALS_LOAD_FAILED', res.status, 'Could not load approvals.');
+  return res.json();
+}
+
+export async function approveLeaveRequest(id) {
+  const res = await api(`/api/leave-requests/${id}/approve`, { method: 'POST' });
+  if (!res.ok) throw new ApiError('APPROVE_FAILED', res.status, 'Could not approve this request.');
+}
+
+export async function rejectLeaveRequest(id, reason) {
+  const res = await api(`/api/leave-requests/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(body?.error?.code ?? 'REJECT_FAILED', res.status, body?.error?.message ?? 'Could not reject this request.');
 }
