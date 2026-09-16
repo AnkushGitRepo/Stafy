@@ -3,17 +3,13 @@ import { z } from 'zod';
 
 import { getPool } from '../db/pool.js';
 import { AppError } from '../lib/errors.js';
-import { workDateInIst } from '../lib/time.js';
+import { formatIstDate, workDateInIst } from '../lib/time.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { authorize } from '../middleware/authorize.js';
 import { loadEmployee } from '../middleware/loadEmployee.js';
 import { validate } from '../middleware/validate.js';
 
 const router = Router();
-
-function fmtDate(d) {
-  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
-}
 
 router.get('/types', authenticate, loadEmployee, authorize('leave.self'), async (req, res, next) => {
   try {
@@ -66,7 +62,7 @@ router.get('/mine', authenticate, loadEmployee, authorize('leave.self'), async (
     res.json({
       data: rows.map((r) => ({
         id: r.id,
-        dates: r.start_date === r.end_date ? fmtDate(r.start_date) : `${fmtDate(r.start_date)} – ${fmtDate(r.end_date)}`,
+        dates: r.start_date === r.end_date ? formatIstDate(r.start_date) : `${formatIstDate(r.start_date)} – ${formatIstDate(r.end_date)}`,
         startDate: r.start_date,
         type: r.type_name,
         days: Number(r.days),
@@ -106,11 +102,32 @@ router.post('/', authenticate, loadEmployee, authorize('leave.self'), validate(a
     const { leaveTypeId, startDate, endDate, duration, halfSession, reason } = req.body;
     const days = duration === 'half_day' ? 0.5 : (new Date(`${endDate}T00:00:00Z`) - new Date(`${startDate}T00:00:00Z`)) / 86400000 + 1;
 
-    const { rows } = await getPool().query(
+    const pool = getPool();
+    const { rows } = await pool.query(
       `insert into leave_requests (employee_id, leave_type_id, start_date, end_date, duration, half_session, days, reason)
        values ($1,$2,$3,$4,$5,$6,$7,$8) returning id`,
       [req.actor.id, leaveTypeId, startDate, endDate, duration, halfSession ?? null, days, reason],
     );
+
+    const { rows: ltRows } = await pool.query(`select name from leave_types where id = $1`, [leaveTypeId]);
+    await pool.query(
+      `insert into audit_logs (actor_id, action, entity_type, entity_id, after)
+       values ($1, 'leave.applied', 'leave_request', $2, $3)`,
+      [
+        req.actor.id,
+        rows[0].id,
+        JSON.stringify({
+          status: 'pending',
+          employee_id: req.actor.id,
+          employee_name: req.actor.fullName,
+          leave_type: ltRows[0]?.name ?? 'Leave',
+          start_date: startDate,
+          end_date: endDate,
+          days,
+        }),
+      ],
+    );
+
     res.status(201).json({ data: { id: rows[0].id } });
   } catch (err) {
     if (err.code === '23P01') return next(new AppError('LEAVE_OVERLAP', 409, 'This overlaps one of your existing pending or approved leave requests.'));
@@ -159,7 +176,7 @@ router.get('/approvals', authenticate, loadEmployee, authorize('leave.approvals.
       data: rows.map((a) => ({
         id: a.id,
         name: a.name,
-        dates: a.start_date === a.end_date ? fmtDate(a.start_date) : `${fmtDate(a.start_date)} – ${fmtDate(a.end_date)}`,
+        dates: a.start_date === a.end_date ? formatIstDate(a.start_date) : `${formatIstDate(a.start_date)} – ${formatIstDate(a.end_date)}`,
         type: a.type_name,
       })),
     });
@@ -175,7 +192,11 @@ async function scopedPendingRequest(pool, actor, id) {
   const scopeSql = actor.role === 'admin' ? 'true' : 'e.manager_id = $2';
   const params = actor.role === 'admin' ? [id] : [id, actor.id];
   const { rows } = await pool.query(
-    `select lr.id, lr.employee_id from leave_requests lr join employees e on e.id = lr.employee_id
+    `select lr.id, lr.employee_id, lr.days, lr.start_date, lr.end_date, lr.reason,
+            e.full_name as employee_name, e.employee_code, lt.name as leave_type_name
+     from leave_requests lr
+     join employees e on e.id = lr.employee_id
+     join leave_types lt on lt.id = lr.leave_type_id
      where lr.id = $1 and lr.status='pending' and ${scopeSql}`,
     params,
   );
@@ -197,8 +218,22 @@ router.post('/:id/approve', authenticate, loadEmployee, authorize('leave.decide'
     if (!rows.length) throw new AppError('INVALID_STATUS_TRANSITION', 409, 'This request was already decided.');
 
     await pool.query(
-      `insert into audit_logs (actor_id, action, entity_type, entity_id, after) values ($1,'leave.approved','leave_request',$2,'{"status":"approved"}')`,
-      [req.actor.id, request.id],
+      `insert into audit_logs (actor_id, action, entity_type, entity_id, after)
+       values ($1, 'leave.approved', 'leave_request', $2, $3)`,
+      [
+        req.actor.id,
+        request.id,
+        JSON.stringify({
+          status: 'approved',
+          employee_id: request.employee_id,
+          employee_name: request.employee_name,
+          employee_code: request.employee_code,
+          leave_type: request.leave_type_name,
+          start_date: request.start_date,
+          end_date: request.end_date,
+          days: request.days,
+        }),
+      ],
     );
     res.status(204).end();
   } catch (err) {
@@ -223,8 +258,20 @@ router.post('/:id/reject', authenticate, loadEmployee, authorize('leave.decide')
     if (!rows.length) throw new AppError('INVALID_STATUS_TRANSITION', 409, 'This request was already decided.');
 
     await pool.query(
-      `insert into audit_logs (actor_id, action, entity_type, entity_id, after) values ($1,'leave.rejected','leave_request',$2,'{"status":"rejected"}')`,
-      [req.actor.id, request.id],
+      `insert into audit_logs (actor_id, action, entity_type, entity_id, after)
+       values ($1, 'leave.rejected', 'leave_request', $2, $3)`,
+      [
+        req.actor.id,
+        request.id,
+        JSON.stringify({
+          status: 'rejected',
+          employee_id: request.employee_id,
+          employee_name: request.employee_name,
+          employee_code: request.employee_code,
+          leave_type: request.leave_type_name,
+          rejection_reason: req.body.reason,
+        }),
+      ],
     );
     res.status(204).end();
   } catch (err) {

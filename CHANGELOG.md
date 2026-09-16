@@ -84,5 +84,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Real Employees Add, Detail Drawer, and Deactivation: `POST /api/employees`, `GET /api/employees/:id`, `POST /api/employees/:id/deactivate` with BR-24 (block if active direct reports) and BR-25 (last active admin and self-deactivation protection). Dedicated slide-out drawer on `/app/employees`.
 - Real Audit Log page (Admin): `GET /api/audit-logs` and dedicated `/app/audit` view showing actor, action, entity type, and timestamp.
 - Real Employee Profile page: `GET /api/auth/profile`, `PATCH /api/auth/profile` (BR-22: phone only) and dedicated `/app/profile` view.
+- Improved Recent Activity & Audit Log system:
+  - Centralized audit formatting via `server/src/lib/auditFormatter.js` joining actor, target employee, department, and leave details to produce natural language explanations (e.g. "Arjun Mehta approved Sick Leave for Riya Sen (1 day)") instead of raw database tokens.
+  - Redesigned `RecentActivityList.jsx` with semantic status badges (mint check, danger cross, alert user, clock check-in), secondary detail captions, and tabular IST time formatting.
+  - Upgraded `AuditLogPage.jsx` with 4 summary stat cards (Total, Leave Decisions, Employee Lifecycle, Attendance), category filter chips, live search filter, structured actor avatars and target employee badges, and a slide-over metadata inspector drawer displaying parsed key-values and raw JSON payloads.
+  - Added audit logging across attendance check-in/out and profile updates.
+  - Added unit test suite `server/tests/unit/auditFormatter.test.js` and verified with 23 passing tests.
 
 

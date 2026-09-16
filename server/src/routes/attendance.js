@@ -42,6 +42,21 @@ router.post('/check-in', authenticate, loadEmployee, authorize('attendance.self'
       `insert into attendance (employee_id, work_date, check_in_at) values ($1,$2, now()) returning work_date, check_in_at, check_out_at`,
       [req.actor.id, today],
     );
+
+    await pool.query(
+      `insert into audit_logs (actor_id, action, entity_type, entity_id, after)
+       values ($1, 'attendance.check_in', 'attendance', $2, $3)`,
+      [
+        req.actor.id,
+        req.actor.id,
+        JSON.stringify({
+          work_date: today,
+          employee_name: req.actor.fullName,
+          employee_code: req.actor.employeeCode,
+        }),
+      ],
+    );
+
     res.status(201).json({ data: rows[0] });
   } catch (err) {
     next(err);
@@ -63,6 +78,21 @@ router.post('/check-out', authenticate, loadEmployee, authorize('attendance.self
       `update attendance set check_out_at = now() where id=$1 returning work_date, check_in_at, check_out_at`,
       [existing[0].id],
     );
+
+    await pool.query(
+      `insert into audit_logs (actor_id, action, entity_type, entity_id, after)
+       values ($1, 'attendance.check_out', 'attendance', $2, $3)`,
+      [
+        req.actor.id,
+        req.actor.id,
+        JSON.stringify({
+          work_date: today,
+          employee_name: req.actor.fullName,
+          employee_code: req.actor.employeeCode,
+        }),
+      ],
+    );
+
     res.json({ data: rows[0] });
   } catch (err) {
     next(err);

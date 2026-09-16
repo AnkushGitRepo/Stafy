@@ -1,7 +1,8 @@
 import { Router } from 'express';
 
 import { getPool } from '../db/pool.js';
-import { workDateInIst } from '../lib/time.js';
+import { AUDIT_QUERY_BASE, formatAuditEvent } from '../lib/auditFormatter.js';
+import { formatIstDate, formatIstTime, workDateInIst } from '../lib/time.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { loadEmployee } from '../middleware/loadEmployee.js';
 
@@ -9,14 +10,6 @@ const router = Router();
 
 function initialsOf(name) {
   return name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-}
-
-function fmtDate(d) {
-  return new Date(d).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
-}
-
-function fmtTime(d) {
-  return new Date(d).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
 }
 
 router.get('/', authenticate, loadEmployee, async (req, res, next) => {
@@ -38,10 +31,8 @@ router.get('/', authenticate, loadEmployee, async (req, res, next) => {
         [today],
       );
       const { rows: pending } = await pool.query(`select count(*)::int as c from leave_requests where status='pending'`);
-      const { rows: activity } = await pool.query(
-        `select a.action, a.entity_type, a.created_at, e.full_name as actor_name
-         from audit_logs a left join employees e on e.id = a.actor_id
-         order by a.created_at desc limit 4`,
+      const { rows: activityRows } = await pool.query(
+        `${AUDIT_QUERY_BASE} order by a.created_at desc limit 5`,
       );
       res.json({
         data: {
@@ -52,9 +43,16 @@ router.get('/', authenticate, loadEmployee, async (req, res, next) => {
             { key: 'onLeave', label: 'On leave', value: onLeave[0].c, status: 'leave' },
             { key: 'pending', label: 'Pending leave requests', value: pending[0].c, status: 'pending' },
           ],
-          recentActivity: activity.map((a) => ({
-            time: fmtTime(a.created_at),
-            text: `${a.actor_name ?? 'System'} — ${a.action.replace('.', ' ')} (${a.entity_type})`,
+          recentActivity: activityRows.map(formatAuditEvent).map((evt) => ({
+            id: evt.id,
+            time: evt.time,
+            summary: evt.summary,
+            details: evt.details,
+            status: evt.status,
+            actionLabel: evt.actionLabel,
+            actorName: evt.actorName,
+            targetName: evt.targetName,
+            text: evt.summary,
           })),
         },
       });
@@ -108,7 +106,7 @@ router.get('/', authenticate, loadEmployee, async (req, res, next) => {
           approvals: approvalsRaw.map((a) => ({
             id: a.id,
             name: a.name,
-            dates: a.start_date === a.end_date ? fmtDate(a.start_date) : `${fmtDate(a.start_date)} – ${fmtDate(a.end_date)}`,
+            dates: a.start_date === a.end_date ? formatIstDate(a.start_date) : `${formatIstDate(a.start_date)} – ${formatIstDate(a.end_date)}`,
             type: a.type_name,
           })),
         },
@@ -140,9 +138,9 @@ router.get('/', authenticate, loadEmployee, async (req, res, next) => {
           { key: 'rejected', label: 'Rejected', value: m.rejected, status: 'rejected' },
         ],
         recentAttendance: recent.map((r) => ({
-          date: fmtDate(r.work_date),
+          date: formatIstDate(r.work_date),
           status: r.check_out_at ? 'present' : 'half-day',
-          times: r.check_out_at ? `${fmtTime(r.check_in_at)} – ${fmtTime(r.check_out_at)}` : `${fmtTime(r.check_in_at)} –`,
+          times: r.check_out_at ? `${formatIstTime(r.check_in_at)} – ${formatIstTime(r.check_out_at)}` : `${formatIstTime(r.check_in_at)} –`,
         })),
       },
     });

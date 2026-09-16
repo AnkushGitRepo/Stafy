@@ -307,8 +307,12 @@ export async function deactivateEmployee(id) {
   }
 }
 
-export async function getAuditLogs() {
-  const res = await api('/api/audit-logs');
+export async function getAuditLogs(params = {}) {
+  const query = new URLSearchParams();
+  if (params.category && params.category !== 'all') query.set('category', params.category);
+  if (params.q) query.set('q', params.q);
+  const qs = query.toString();
+  const res = await api(`/api/audit-logs${qs ? `?${qs}` : ''}`);
   if (!res.ok) throw new ApiError('AUDIT_LOGS_LOAD_FAILED', res.status, 'Could not load audit logs.');
   return res.json();
 }

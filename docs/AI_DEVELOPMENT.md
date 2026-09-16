@@ -80,5 +80,19 @@ One entry per meaningful prompt. The README "AI Development Process" section is 
 - **What I changed or rejected**: TO BE FILLED BY ANKUSH
 - **Commit(s)**: `d6b3654`, `38608ef`, `1421835`, `f730e41`, `b5a825a`, `5dd254d`, `a0b5fdf`, `33b861a`, `0f09f06`, `ee706e4`, `e718d43`, `c97fcdd`, `d9f9d76`
 
+## Entry: P-008
 
-
+- **Prompt**: User requested: "Fix recent activity section: make sure data is logical and makes sense. Improve the audit log page with better data and structure it properly."
+- **Tool**: Antigravity.
+- **Why I used it**: The existing dashboard Recent Activity rendered raw database strings (e.g. `Arjun Mehta — leave approved (leave_request)`), which lacked essential target employee details, leave duration, and contextual information. Concurrently, the `/app/audit` table displayed unformatted JSON dumps (`{"status":"approved"}`) with no entity context.
+- **AI's approach/output**:
+  1. Built a centralized audit log query and formatter (`server/src/lib/auditFormatter.js`) that performs a relational join between `audit_logs`, actor employees, target employees, departments, and leave requests.
+  2. Synthesizes human-readable natural language sentences (e.g. "Arjun Mehta approved Sick Leave for Riya Sen (1 day)", "Priya Shah deactivated employee Meera Iyer (EMP-0005)") and extracts structured metadata key-values.
+  3. Replaced raw ad-hoc date/time formatting with centralized timezone-aware helpers in `server/src/lib/time.js` (`formatIstDate`, `formatIstTime`, `formatIstDateTime`).
+  4. Redesigned `RecentActivityList.jsx` with action tone badges (mint check, danger cross, alert user, clock check-in), secondary detail captions, and tabular IST time.
+  5. Completely overhauled `AuditLogPage.jsx`: added top summary stats bento cards (Total, Leave Decisions, Employee Lifecycle, Attendance), category filter chips, search input, actor avatars, target badges, and an interactive slide-over event inspector drawer displaying structured attributes and raw JSON payloads.
+  6. Enriched backend audit log inserts across `leave.js`, `employees.js`, `attendance.js`, and `auth.js` to capture comprehensive payloads on all future mutations.
+  7. Added unit tests in `server/tests/unit/auditFormatter.test.js` and `server/tests/unit/time.test.js`; test suite expanded to 23 passing tests (13 unit, 10 integration).
+- **What I accepted**: TO BE FILLED BY ANKUSH
+- **What I changed or rejected**: TO BE FILLED BY ANKUSH
+- **Commit(s)**: Pending commit

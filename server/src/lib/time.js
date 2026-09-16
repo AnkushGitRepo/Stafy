@@ -29,3 +29,36 @@ export function isWorkingDay(workDate) {
   const day = new Date(`${workDate}T00:00:00Z`).getUTCDay();
   return day !== 0 && day !== 6;
 }
+
+/** @param {string|Date} date @returns {string} */
+export function formatIstTime(date) {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(date)).toLowerCase();
+}
+
+/** @param {string|Date} date @returns {string} */
+export function formatIstDateTime(date) {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(date));
+}
+
+/** @param {string|Date} date @returns {string} */
+export function formatIstDate(date) {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(date));
+}

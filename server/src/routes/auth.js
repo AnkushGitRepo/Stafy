@@ -97,7 +97,20 @@ const profileUpdateSchema = z.object({
 router.patch('/profile', authenticate, loadEmployee, validate(profileUpdateSchema), async (req, res, next) => {
   try {
     const { phone } = req.body;
-    await getPool().query(`update employees set phone = $1 where id = $2`, [phone ?? null, req.actor.id]);
+    const pool = getPool();
+    await pool.query(`update employees set phone = $1 where id = $2`, [phone ?? null, req.actor.id]);
+    await pool.query(
+      `insert into audit_logs (actor_id, action, entity_type, entity_id, after)
+       values ($1, 'profile.updated', 'employee', $1, $2)`,
+      [
+        req.actor.id,
+        JSON.stringify({
+          phone: phone ?? null,
+          employee_name: req.actor.fullName,
+          employee_code: req.actor.employeeCode,
+        }),
+      ],
+    );
     res.json({ data: { phone: phone ?? '' } });
   } catch (err) {
     next(err);

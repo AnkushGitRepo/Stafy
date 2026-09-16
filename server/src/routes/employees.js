@@ -174,7 +174,7 @@ router.post('/:id/deactivate', authenticate, loadEmployee, authorize('employees.
   try {
     const pool = getPool();
     const { rows: targets } = await pool.query(
-      `select id, full_name, role, employment_status from employees where id = $1`,
+      `select id, employee_code, full_name, role, employment_status from employees where id = $1`,
       [req.params.id],
     );
     const target = targets[0];
@@ -206,8 +206,18 @@ router.post('/:id/deactivate', authenticate, loadEmployee, authorize('employees.
     await pool.query(`update leave_requests set status = 'cancelled', cancelled_at = now() where employee_id = $1 and status = 'pending'`, [target.id]);
     await pool.query(
       `insert into audit_logs (actor_id, action, entity_type, entity_id, after)
-       values ($1, 'employee.deactivated', 'employee', $2, '{"status":"inactive"}')`,
-      [req.actor.id, target.id],
+       values ($1, 'employee.deactivated', 'employee', $2, $3)`,
+      [
+        req.actor.id,
+        target.id,
+        JSON.stringify({
+          status: 'inactive',
+          employee_id: target.id,
+          employee_name: target.full_name,
+          employee_code: target.employee_code,
+          role: target.role,
+        }),
+      ],
     );
 
     res.status(204).end();
