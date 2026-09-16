@@ -30,6 +30,12 @@ export const MANAGER_DASHBOARD = {
     { name: 'Neha Kulkarni', initials: 'NK', status: 'leave' },
     { name: 'Aarav Sharma', initials: 'AS', status: 'pending' },
   ],
+  // Rows behind the `pending` metric above — real approval records land in P1
+  // against GET/POST /api/leave-requests (BR-10…BR-13).
+  approvals: [
+    { id: 1, name: 'Aarav Sharma', dates: 'Sep 18–19', type: 'Sick Leave' },
+    { id: 2, name: 'Neha Kulkarni', dates: 'Sep 22', type: 'Half Day' },
+  ],
 };
 
 export const EMPLOYEE_DASHBOARD = {
