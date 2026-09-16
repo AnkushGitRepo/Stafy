@@ -247,3 +247,11 @@ export async function cancelLeaveRequest(id) {
     throw new ApiError(body?.error?.code ?? 'CANCEL_FAILED', res.status, body?.error?.message ?? 'Could not cancel this request.');
   }
 }
+
+export async function getEmployees(filters = {}) {
+  const params = new URLSearchParams(Object.entries(filters).filter(([, v]) => v));
+  const qs = params.toString();
+  const res = await api(`/api/employees${qs ? `?${qs}` : ''}`);
+  if (!res.ok) throw new ApiError('EMPLOYEES_LOAD_FAILED', res.status, 'Could not load employees.');
+  return res.json();
+}

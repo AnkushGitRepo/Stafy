@@ -7,6 +7,8 @@ const STATUS_STYLES = {
   approved: { bg: 'var(--color-success-chip-bg)', fg: 'var(--color-success)', dot: 'var(--color-success)', label: 'Approved' },
   rejected: { bg: 'var(--color-danger-chip-bg)', fg: 'var(--color-danger)', dot: 'var(--color-danger)', label: 'Rejected' },
   cancelled: { bg: 'var(--color-neutral-chip-bg)', fg: 'var(--color-neutral-dot)', dot: 'var(--color-neutral-dot)', label: 'Cancelled' },
+  active: { bg: 'var(--color-success-chip-bg)', fg: 'var(--color-success)', dot: 'var(--color-success)', label: 'Active' },
+  inactive: { bg: 'var(--color-neutral-chip-bg)', fg: 'var(--color-neutral-dot)', dot: 'var(--color-neutral-dot)', label: 'Inactive' },
 };
 
 /** @param {{ status: keyof typeof STATUS_STYLES, label?: string }} props */

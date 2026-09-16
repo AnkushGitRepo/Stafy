@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import attendanceRoutes from './routes/attendance.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
+import employeesRoutes from './routes/employees.js';
 import leaveRoutes from './routes/leave.js';
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leave-requests', leaveRoutes);
+app.use('/api/employees', employeesRoutes);
 
 app.use('/api', (req, res) => {
   res.status(404).json({

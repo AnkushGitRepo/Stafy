@@ -4,6 +4,7 @@ const RULES = {
   'dashboard.read': () => true,
   'attendance.self': () => true,
   'leave.self': () => true,
+  'employees.read': (actor) => actor.role === 'admin',
   'leave.approvals.read': (actor) => actor.role === 'admin' || actor.role === 'manager',
   'leave.decide': (actor) => actor.role === 'admin' || actor.role === 'manager',
 };

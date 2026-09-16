@@ -19,6 +19,7 @@ const AdminDashboardPage = lazy(() => import('./features/dashboard/pages/AdminDa
 const ManagerDashboardPage = lazy(() => import('./features/dashboard/pages/ManagerDashboardPage.jsx').then((m) => ({ default: m.ManagerDashboardPage })));
 const EmployeeDashboardPage = lazy(() => import('./features/dashboard/pages/EmployeeDashboardPage.jsx').then((m) => ({ default: m.EmployeeDashboardPage })));
 const LeavePage = lazy(() => import('./features/leave/pages/LeavePage.jsx').then((m) => ({ default: m.LeavePage })));
+const EmployeesPage = lazy(() => import('./features/employees/pages/EmployeesPage.jsx').then((m) => ({ default: m.EmployeesPage })));
 
 // UX-only guard (ADR-007) — real enforcement is server-side, added in P1.
 function RequireAuth({ children }) {
@@ -59,7 +60,7 @@ export default function App() {
               <Route path="attendance" element={<ComingSoonPage title="Attendance" />} />
               <Route path="leave" element={<LeavePage />} />
               <Route path="approvals" element={<ComingSoonPage title="Approvals" />} />
-              <Route path="employees" element={<ComingSoonPage title="Employees" />} />
+              <Route path="employees" element={<EmployeesPage />} />
               <Route path="team" element={<ComingSoonPage title="My Team" />} />
               <Route path="audit" element={<ComingSoonPage title="Audit log" />} />
               <Route path="profile" element={<ComingSoonPage title="My Profile" />} />
