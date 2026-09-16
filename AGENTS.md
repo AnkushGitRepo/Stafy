@@ -41,7 +41,7 @@ Never guess silently. After the answer, append the outcome to `docs/DECISIONS.md
 - All SQL parameterized, all input Zod-validated with `.strict()`.
 - Every scoped query takes the actor and filters in SQL (never in application code after an unscoped fetch).
 - Errors via `AppError(code, status, message, details?)`.
-- IST time handling goes through one file: `server/src/lib/time.js`.
+- IST time handling goes through one file: `server/src/lib/time.js`. That file must derive IST via `Intl.DateTimeFormat`/a timezone-aware method, never via manual UTC-offset arithmetic keyed off `Date.prototype.getTimezoneOffset()` — that's host-runtime-local, not UTC, and breaks silently outside a UTC-local environment (AICR-005).
 - No `console.log` in committed code — use the `pino` logger.
 - No secrets in client code, ever.
 - No new dependency without approval (Ask-First #2).

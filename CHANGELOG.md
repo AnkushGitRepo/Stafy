@@ -46,3 +46,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - Additive `approvals` array on `MANAGER_DASHBOARD` in `client/src/mocks/dashboardData.js` (real request rows behind the existing `pending` metric, so the Approve/Reject panel isn't backed by fabricated data).
+
+## [P1/P-007 — deadline mode] - 2026-09-16
+
+### Added
+- Real Supabase project provisioned and migrated (`supabase/migrations/20260916140000_init.sql` — full schema from `docs/DATABASE.md`: departments, employees, attendance, leave_types, leave_requests, audit_logs, RLS enabled everywhere, all documented constraints/indexes/triggers).
+- Real Express API: `authenticate`/`loadEmployee`/`authorize`/`validate` middleware, `policies/can()`, `POST /api/auth/login|logout`, `GET /api/auth/me`, `GET /api/dashboard` (role-shaped, real queries), `GET/POST /api/attendance/today|check-in|check-out`, `GET /api/leave-requests/approvals`, `POST /api/leave-requests/:id/approve|reject`.
+- `server/src/scripts/seed.js`: creates the 4 real demo accounts in Supabase Auth plus 4 more team members, seeds departments/leave types/attendance history/leave requests across statuses. Run against the live project.
+- Frontend wired off mocks: `USE_MOCKS = false`, `CheckInCard` and `ApprovalsQueue` call the real API (TanStack Query + mutations), `/login`'s demo panel shows the real shared password.
+- 5 passing unit tests (`server/tests/unit/time.test.js`).
+- Deployed to production: **https://stafy-seven.vercel.app**.
+
+### Fixed
+- Vercel project's dashboard-configured Root Directory (`client`) conflicted with `vercel.json`'s `outputDirectory: client/dist`, doubling the path and failing every build — cleared Root Directory so `vercel.json` (repo root) is authoritative.
+- Infinite reload loop on `/login` for anonymous visitors caused by `api.js`'s 401-handler redirecting on the routine "am I logged in" check (AICR-004).
+- `server/src/lib/time.js`'s IST conversion used manual UTC-offset arithmetic that only worked on a UTC-local host — replaced with `Intl.DateTimeFormat` (AICR-005).
+
+### Known limitations (see README for the full list)
+- Employees module, Attendance history page, Leave apply/balance/cancel page, and the `other_pages.zip` design port: not built this pass (Tier 0 backend foundation took priority under the deadline).
+- No automated integration/E2E test suite — business rules verified manually against the live API (`docs/TESTING.md`).
+- Seed data is a reduced slice of `docs/DATABASE.md`'s full plan (4 extra employees instead of 8, ~5 days of attendance instead of ~20, no second cross-manager HR account).

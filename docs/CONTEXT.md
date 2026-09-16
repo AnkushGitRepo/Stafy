@@ -1,25 +1,25 @@
-> Status: Living   ·   Last updated: 2026-09-16 00:15 IST   ·   Owner: Ankush
+> Status: Living   ·   Last updated: 2026-09-16 14:25 IST   ·   Owner: Ankush
 > Related: docs/PHASES.md, docs/DECISIONS.md
 
 # Current phase & task
 
-- Phase: **P0** done. **P2** done: brand/landing design (P-002), UI implementation against mocks (P-003), and the dashboard design port (P-004/P-005).
-- Task just finished: P-005 — ported the real "Stafy Dashboards" Claude Design export into React, replacing P-003's placeholder app shell and three role dashboards (visual-layer swap only, mock data unchanged except one additive `approvals` array).
-- Next: **P1 — Foundation** (migrations, seed, real auth, middleware, policies, domain functions + unit tests, Vercel skeleton deploy). Once P1's real API exists, `lib/api.js`'s `USE_MOCKS` flag flips and `mocks/` is deleted — no component code should need to change.
+- **Deadline-mode pass (P-007) just completed.** Real Supabase project provisioned, full schema migrated, real Express API (auth/dashboard/attendance/approvals) built and deployed, frontend wired off mocks for those surfaces, seeded, and deployed live: **https://stafy-seven.vercel.app**.
+- This ran as one continuous session under `docs/prompts/P-007-full-build-and-deploy.md`'s explicit tiered/cut-order process — the phase-by-phase `docs/PHASES.md` pacing below is superseded by the tier log in this entry for what actually happened today.
+- **Not built this pass** (see "Cuts made" below): Employees module, Attendance history page, Leave apply/balance/cancel page, the `other_pages.zip` design port, automated integration/E2E tests.
 
 # Status of phases
 
 | Phase | Status | Archive link |
 |---|---|---|
 | P0 | Done | — (small enough to leave inline; see "Done in current phase" below) |
-| P1 | Not started | — |
-| P2 | Done (design P-002 + mock UI build P-003) | — |
-| P3 | Not started (real employees module; UI shell already exists via P-003's `ComingSoonPage`) | — |
-| P4 | Not started (real attendance; UI shell already exists) | — |
-| P5 | Not started (real leave; UI shell already exists) | — |
-| P6 | Not started (dashboards already built against mocks in P-003 — P6 becomes "swap to real data") | — |
-| P7 | Not started | — |
-| P8 | Not started | — |
+| P1 | Partially done — schema, auth, dashboard/attendance/leave-approval APIs, seed, deployed. Employees CRUD and full unit-test coverage of domain functions not done. | — |
+| P2 | Done (design P-002 + mock UI build P-003 + dashboard redesign P-005) | — |
+| P3 | Not started — Employees module has no API or UI (nav item exists, routes to a "coming soon" placeholder) | — |
+| P4 | Partial — check-in/check-out real and enforced; no history/list page | — |
+| P5 | Partial — Manager/Admin approve/reject real and enforced (via the existing dashboard panel); no apply/balance/cancel page | — |
+| P6 | Done for the metrics that exist — dashboards run on real, live data for all 3 roles | — |
+| P7 | Partial — secrets-in-bundle check done; no formal security-reviewer pass; no E2E | — |
+| P8 | Partial — README/CHANGELOG/CONTEXT updated honestly, live URL confirmed; AI dev/review logs updated | — |
 
 # Done in current phase
 
@@ -30,14 +30,28 @@
   - Lighthouse on the production build: **93 / 97 / 100 / 100** (Performance/Accessibility/Best Practices/SEO), after route-level code-splitting and switching Google Fonts to a non-render-blocking load (first measurement was Performance 81, before those two fixes).
   - Verified in a real browser: all routes, role-based nav filtering, the check-in interaction, `/activate` with/without a token, 404, and mobile nav drawer at a narrow viewport.
 - **P-005**: real dashboard design (from a Claude Design `.dc.html` zip export) ported into React — `features/app-shell/` (Sidebar/MobileNav/Drawer/Topbar/UserMenu/SignOutConfirmDialog), and Admin/Manager/Employee dashboards rebuilt to match, still on mock data. `StatCard` extended with an additive `tint` prop. Fixed a real P-003 gap found in the process: Manager's "My Team" and Employee's "My Profile" nav items were spec'd in P-004 but never wired up (AICR-003) — added `/app/team` and `/app/profile` routes.
-- Commit hashes: `ce5ff95`, `ae2c97b`, `3575465`, `9548e54` (P0); `9b40e47`, `85c54a7` (P-002); P-003 and P-005 commit(s) TBD after this task's commits land.
+- **P-007 (deadline mode)**: Supabase project `stafy` created live (ap-southeast-2); full schema migrated (`supabase/migrations/20260916140000_init.sql`); real Express API for auth, role-shaped dashboards, attendance check-in/out, and leave approvals (`server/src/routes/*`, `middleware/*`, `policies/index.js`); seed script run against the live DB (4 demo accounts + 4 more team members, attendance history, leave requests across statuses); frontend flipped off mocks (`USE_MOCKS = false`) with `CheckInCard`/`ApprovalsQueue` wired to real endpoints; deployed to Vercel production. Two real defects found and fixed live: AICR-004 (login-page infinite reload loop) and AICR-005 (IST time-conversion bug caught by a unit test). Full detail in `docs/AI_DEVELOPMENT.md` Entry P-007 and `CHANGELOG.md`.
+- Commit hashes: `ce5ff95`, `ae2c97b`, `3575465`, `9548e54` (P0); `9b40e47`, `85c54a7` (P-002); P-003/P-005/P-007 commit(s) TBD after this task's commits land.
+
+# Cuts made this pass (P-007), in the order the prompt's own cut-order named them
+
+1. Employees module (list/search/filter/paginate/add/edit/deactivate) — no API, no UI beyond the existing "coming soon" nav destination. Reason: Tier 0 backend foundation (schema/auth/dashboard/attendance/leave-approval) took the full available time budget; this was next in line but time ran out first.
+2. Attendance history page (Admin/Manager table, Employee calendar) — same reason.
+3. Leave apply/balance/cancel page — same reason. The Manager/Admin approve/reject flow *is* real (via the dashboard's existing Approvals panel), just not a dedicated Leave page.
+4. `other_pages.zip` design export — unzipped but not ported; no real backend existed yet for an Employees/Attendance/Leave page to bind to when this was reached.
+5. Audit log UI — the writes are real (`audit_logs` table, feeds Admin's "Recent activity"); no dedicated list page.
+6. Automated integration/E2E tests — business rules the API enforces were verified manually against the live production API/DB instead (`docs/TESTING.md`), logged as `verified (manual, live)`, not claimed as automated `passing` coverage.
+7. Second cross-manager HR/Admin seed account, full ~20-day attendance history, full leave-status-combination coverage — `docs/DATABASE.md`'s seed plan was trimmed to a smaller real slice (4 extra employees, ~5 days, 4 leave requests) to fit the time budget.
+
+Never cut (all real, all live): server-side RBAC/scoping (404-not-403 confirmed live for cross-team leave), check-in/check-out, leave approve/reject with real business rules, the live deployed URL, a README with real demo credentials and an honest limitations section.
 
 # In progress / next up
 
-1. Human: create Supabase project, run the DB design in `docs/DATABASE.md` as an actual migration, populate `.env`.
-2. P1 Foundation: migrations, seed, real auth endpoints, `authenticate`/`authorize`/`validate` middleware, policies, domain pure functions + unit tests, Vercel skeleton deploy — then flip `USE_MOCKS = false` and delete `client/src/mocks/`.
-3. Rasterize the 1200×630 social preview and 180×180 apple-touch icon (currently HTML/SVG mockups only) before the real deploy.
-4. Fill demo account passwords via `DEMO_PASSWORD` once Supabase project exists.
+1. Build the Employees, Attendance, and Leave (apply/balance/cancel) modules — API + UI — the largest remaining gap against the original brief.
+2. Port `other_pages.zip`'s design for those three modules once their APIs exist, following the same token/component-reuse discipline as P-005.
+3. Automated integration tests (Supertest) against a separate test Supabase project for the BR-IDs currently only `verified (manual, live)`.
+4. Rasterize the 1200×630 social preview and 180×180 apple-touch icon (currently HTML/SVG mockups only).
+5. Expand seed data to `docs/DATABASE.md`'s full plan (second HR account, full attendance history) once there's a UI that shows it off.
 
 # Open questions
 
@@ -60,7 +74,10 @@ None blocking as of this entry.
 - **The Claude Design canvas preview doesn't run GSAP/ScrollTrigger/Flip** (CDN `<script>` blocked by the sandbox's CSP) — don't read "no animation in the design canvas" as a defect; it only fully plays once ported into the real app.
 - **Automated browser tabs report `document.hidden = true`**, which throttles `requestAnimationFrame` and makes GSAP timelines (hero story, StatCard count-ups) appear to progress very slowly during automated testing. Confirmed via longer waits that they complete correctly — this is a testing-tool artifact (no real OS focus), not an app bug. A normally-focused user tab is unaffected. The `useIstClock` hook correctly pauses its `setInterval` under the same `document.hidden` check, by design.
 - `resize_window` on an already-navigated tab does not reliably change the rendered viewport for screenshots in this session's browser tool — resize a **fresh** tab (before navigating) to test responsive breakpoints reliably.
-- `{{SITE_URL}}` stays a placeholder until the real Vercel URL exists (P1 exit criteria). `{{REPO_URL}}` already resolves to `https://github.com/AnkushGitRepo/Stafy` throughout the ported code.
+- `{{SITE_URL}}` now resolves to `https://stafy-seven.vercel.app` (P1 exit criteria met). `{{REPO_URL}}` already resolves to `https://github.com/AnkushGitRepo/Stafy` throughout the ported code.
+- **Vercel Project Settings can silently conflict with `vercel.json`**: this project's dashboard had `rootDirectory: "client"` set (from an earlier session) while `vercel.json` (at repo root) also declared `outputDirectory: "client/dist"` — Vercel resolved the output path relative to the dashboard's root directory, looking for the nonexistent `client/client/dist` and failing every deploy with a generic "No Output Directory named dist" error. Fixed by clearing Root Directory in the dashboard (Settings → Build and Deployment) so `vercel.json` at repo root is authoritative, then `vercel pull` locally before redeploying. If a deploy fails on output directory and the local config looks right, check the dashboard's Project Settings next.
+- **`supabase` CLI is not installed in this environment** — Supabase project creation, API keys, and connection strings were obtained via the Supabase dashboard (browser automation) instead; migrations were run directly with `psql` against the session-pooler connection string (port 5432, IPv4) rather than `supabase db push`.
+- **Node's manual UTC-offset arithmetic for timezone conversion is host-dependent** — see AICR-005. Use `Intl.DateTimeFormat` with an explicit `timeZone` instead.
 
 # Completed phases
 

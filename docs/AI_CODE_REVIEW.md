@@ -64,3 +64,38 @@
 - **How I identified it**: manual review — while mapping the P-005 dashboard-design zip export's own `NAV` constant against P-004 §2 (per P-005 §1's inventory step), the export's manager/employee nav lists included `team`/`profile` items P-003's actual code didn't have; cross-checking confirmed the gap was already present in P-003, not something P-005 was newly inventing.
 - **How I fixed it**: added `/app/team` and `/app/profile` routes to `App.jsx` (both render the existing `ComingSoonPage`, same pattern as the other not-yet-built pages) and added the two missing entries to the new `client/src/features/app-shell/navConfig.js`'s `NAV_ITEMS`. No new destinations were designed — this only restores nav-list completeness against the design that was already approved.
 - **Lesson → rule added to AGENTS.md?**: Yes — added to `AGENTS.md` §6 (frontend rules): when a design prompt is approved before its implementation prompt runs, the implementation must diff its shipped nav/metric list against the design prompt's exact spec before the task is marked done.
+
+## Case ID: AICR-004
+
+- **What AI generated**: `client/src/lib/api.js` (P-003, written while `USE_MOCKS = true` so this branch was dead code at the time):
+  ```js
+  if (res.status === 401 && path !== '/api/auth/refresh') {
+    const refreshRes = await refreshSession();
+    if (refreshRes.ok) {
+      res = await doFetch();
+    } else {
+      window.location.assign('/login');
+      return res;
+    }
+  }
+  ```
+- **What was wrong**: `getMe()` calls this same `api()` helper against `/api/auth/me` on every page load (including `/login` itself, via `authContext.jsx`'s mount effect) purely to check "is anyone signed in" — a 401 there is the expected, normal answer for any anonymous visitor, not a session-expiry event. Because the helper redirected to `/login` on *any* 401 outside `/api/auth/refresh`, an anonymous visitor landing on `/login` triggered: `getMe()` → 401 → refresh attempt (404, no such endpoint) → `window.location.assign('/login')` → full page reload → `getMe()` runs again → same 401 → infinite reload loop. The page never painted past a blank root div. This was invisible under P-003 because `USE_MOCKS = true` meant this whole branch never executed.
+- **How I identified it**: manual review in a real browser (Chrome via the browser automation tools) — the live production URL rendered blank; `read_network_requests` showed a tight repeating cycle of `POST /api/auth/refresh` (404) → `GET /login` (200, full reload) → `GET /api/auth/me` (401) every ~1–2 seconds.
+- **How I fixed it**: excluded `/api/auth/me` from the redirect-on-401 path alongside the existing `/api/auth/refresh` exclusion — a 401 from `/me` now just resolves the promise and lets `authContext.jsx`'s existing `.catch(() => setUser(null))` handle it, matching how "check if logged in" is supposed to behave. Redeployed and confirmed the live login page loads and signs in cleanly for all 4 demo accounts.
+- **Lesson → rule added to AGENTS.md?**: No — this is a standard "unreachable code becomes reachable when a feature flag flips" risk, already generally mitigated by AGENTS.md §10's honesty rule (verify by running, don't assume). Didn't add a new standing rule under deadline time pressure; worth a `.strict()`-style "test every `USE_MOCKS`-gated real branch once before flipping the flag" rule in a calmer pass later.
+
+## Case ID: AICR-005
+
+- **What AI generated**: `server/src/lib/time.js` (P-007, first Tier 0 pass):
+  ```js
+  function toIst(date) {
+    return new Date(date.getTime() + (date.getTimezoneOffset() + 330) * 60000);
+  }
+  export function workDateInIst(at = new Date()) {
+    return toIst(at).toISOString().slice(0, 10);
+  }
+  ```
+- **What was wrong**: `Date.prototype.getTimezoneOffset()` returns the *host runtime's own local* UTC offset, not zero — the formula silently assumed the process always runs with a UTC-local system clock. It happens to work on Vercel (whose Node runtime defaults to UTC) but is wrong on any other host timezone. Concretely: on a machine local to IST itself (`getTimezoneOffset() = -330`), the formula adds `(-330 + 330) * 60000 = 0` minutes — i.e. it silently no-ops the IST conversion entirely and just returns the input instant's UTC calendar date, which is wrong for the ~5.5 hours per day where the UTC date and the IST date differ.
+- **How I identified it**: unit test failed — `workDateInIst(new Date('2026-09-16T19:00:00Z'))` (00:30 IST on the 17th) returned `'2026-09-16'` instead of `'2026-09-17'` when run locally (this machine's local timezone is not UTC).
+- **How I fixed it**: replaced the manual offset arithmetic with `Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', ... })`, which is correct regardless of the host runtime's own local timezone. Redeployed (this function backs `workDateInIst()`, used by the attendance check-in/out and dashboard "present today" routes) and re-verified check-in against the live production API.
+- **Lesson → rule added to AGENTS.md?**: Yes — added to `AGENTS.md` §4 (engineering rules), under the existing "IST time handling goes through one file" rule: that file must derive IST via `Intl.DateTimeFormat`/a timezone-aware library, never via manual UTC-offset arithmetic keyed off `Date.prototype.getTimezoneOffset()` (host-timezone-dependent, breaks silently off Vercel's default UTC runtime).

@@ -4,26 +4,33 @@ Mini HRMS — practical assessment for AppTrait Solutions ("Vibe Coder – Inter
 
 ## Overview
 
-Stafy is a role-based HR system: employees check in/out, apply for and manage leave, and HR/Admins manage the org — all under strict, database-backed authorization. TBD: one more paragraph once P1–P6 are built.
+Stafy is a role-based HR system: employees check in/out, apply for and manage leave, and HR/Admins manage the org — all under strict, database-backed authorization. This submission is a real, deployed slice built under a hard deadline (see **Known Limitations** below for exactly what's implemented vs. cut) — real Supabase Postgres + Auth, real Express API, real business-rule enforcement (constraint-backed and route-enforced), no mock data in production.
 
 ## Live Demo
 
-TBD — deployed URL added after P1 skeleton deploy.
+**https://stafy-seven.vercel.app**
 
 ## Demo Credentials
 
 | Role | Email | Password | Team |
 |---|---|---|---|
-| HR/Admin | `hr@stafy.app` | TBD (`DEMO_PASSWORD`) | — |
-| Manager | `manager@stafy.app` | TBD (`DEMO_PASSWORD`) | Team A |
-| Manager | `manager.b@stafy.app` | TBD (`DEMO_PASSWORD`) | Team B (for cross-team test) |
-| Employee | `employee@stafy.app` | TBD (`DEMO_PASSWORD`) | Team A |
+| HR/Admin | `hr@stafy.app` | `StafyDemo2026!` | — |
+| Manager | `manager@stafy.app` | `StafyDemo2026!` | Team A (Engineering) |
+| Manager | `manager.b@stafy.app` | `StafyDemo2026!` | Team B (Design) — for the cross-team 404 test |
+| Employee | `employee@stafy.app` | `StafyDemo2026!` | Team A (Engineering) |
 
 Demo credentials are intentionally public for evaluation — see `docs/SECURITY.md` demo credential policy.
 
 ## Features
 
-TBD — filled in as P3–P6 complete. See `docs/PRD.md` for the full functional requirement list.
+**Real, wired to the live database:**
+- Login/logout against Supabase Auth, `HttpOnly` cookie sessions, deactivated-account lockout.
+- Role-shaped dashboards (Admin/Manager/Employee) — every number is a real query, not mock data.
+- Employee check-in/check-out with server-enforced rules: no double check-in, no check-out without check-in, no check-in on a weekend or on approved full-day leave.
+- Manager/Admin leave approvals: approve/reject with a required reason, self-approval forbidden, a manager acting on another team's request gets a 404 (not a 403 — no enumeration), a decided request can't be decided twice.
+- Real audit log writes on deactivation/approval/rejection (surfaced as Admin's "Recent activity").
+
+**Known limitation — not implemented** (see below): full Employees directory (list/search/add/edit/deactivate), a dedicated Attendance history page, a dedicated Leave apply/balance/cancel page, and the redesigned versions of those three pages from the late-arriving design export. The app shell, nav, and dashboards already exist and are real; these three modules are the gap. See `docs/PRD.md` for the full original functional requirement list.
 
 ## Tech Stack
 
@@ -53,28 +60,29 @@ Threat model, permission matrix, headers, and cookie policy: `docs/SECURITY.md`.
 
 ## Setup Instructions
 
-TBD — filled in once P1 auth/DB exist. Rough shape:
 ```
 npm install
-cp .env.example .env   # fill in Supabase project values
+cp .env.example .env   # fill in your own Supabase project values
+psql "$DATABASE_URL" -f supabase/migrations/20260916140000_init.sql
+DEMO_PASSWORD=... node server/src/scripts/seed.js
 npm run dev
 ```
 
 ## Environment Variables
 
-See `docs/ARCHITECTURE.md` §Environment variables for the full table.
+See `.env.example` for the full list. `SUPABASE_URL`/`SUPABASE_SECRET_KEY`/`SUPABASE_PUBLISHABLE_KEY`/`DATABASE_URL` come from your Supabase project's API/Database settings; `DEMO_PASSWORD` is the password the seed script sets for all 4 demo accounts.
 
 ## Testing
 
-Strategy, commands, and BR/threat → test-ID matrix: `docs/TESTING.md`.
+Strategy, commands, and BR/threat → test-ID matrix: `docs/TESTING.md`. Honest summary: 5 automated unit tests passing (`npm run test:unit`, IST/working-day logic — one of which caught and fixed a real timezone bug, AICR-005). No automated integration/E2E suite this pass (time-boxed) — the business rules the API actually enforces (BR-02, BR-09, BR-10, BR-11, BR-12, BR-14, BR-15, BR-17) were verified manually against the live production API and database and are logged as such in `docs/TESTING.md`, not claimed as `passing` automated coverage.
 
 ## AI Development Process
 
-TBD — generated from the best 5–8 entries in `docs/AI_DEVELOPMENT.md` at submission.
+Full prompt-by-prompt log: `docs/AI_DEVELOPMENT.md`. Highlights: P-000 (requirements analysis, 16 clarifying questions before any code), P-002 (brand/landing design, real Claude Design deliverable substituted in after a placeholder pass), P-003 (full landing/auth/dashboard UI port against mock data), P-005 (dashboard redesign port to the real design system), P-007 (this pass — real backend built from zero against a live Supabase project, frontend wired off mocks, deployed) under an explicit deadline-mode tiered/cut-order process.
 
 ## AI Code Review
 
-TBD — generated from the best 2+ entries in `docs/AI_CODE_REVIEW.md` at submission.
+Full log with before/after and root cause: `docs/AI_CODE_REVIEW.md`. 5 real cases (AICR-001…005), including two found this pass via live testing: AICR-004 (an infinite reload loop on `/login` caused by a 401-handling helper redirecting on the routine "am I logged in" check) and AICR-005 (an IST-conversion helper that silently broke outside a UTC-local runtime, caught by a failing unit test).
 
 ## Planning Document
 
@@ -89,7 +97,16 @@ TBD — generated from the best 2+ entries in `docs/AI_CODE_REVIEW.md` at submis
 
 ## Known Limitations
 
-No public holiday calendar, no attendance regularization/correction flow, no multi-level leave approval, no partial cancellation of multi-day leave. Full list: `docs/PRD.md` Out-of-scope, `docs/DECISIONS.md` ADR-022/ADR-024.
+**Not implemented this pass** (P-007, deadline-mode triage — see `docs/CONTEXT.md` for the full cut log):
+- Employees module: no list/search/filter/pagination/add/edit/activate-deactivate API or UI. The `employees` table, schema, and constraints exist; the routes don't.
+- Attendance history page (Admin/Manager table view, Employee calendar strip) — only check-in/check-out and the dashboard's "recent attendance" (already built in P-005) are wired.
+- Leave apply/balance/cancel page — only the Manager/Admin approve/reject flow (via the existing dashboard Approvals panel) is wired.
+- The `other_pages.zip` design export (Employees/Attendance/Leave redesign) was not ported — no real backend existed yet for those pages to bind to, and Tier 0 (backend foundation) took priority per the cut order.
+- Audit log UI (the underlying log writes are real and power Admin's "Recent activity").
+- Automated integration/E2E test suite (see Testing above).
+- A second HR/Admin account that reports to a manager (`docs/DATABASE.md`'s full seed plan) — only the 4 demo accounts were seeded.
+
+**Out of scope per the original brief** (unchanged from the design phase): no public holiday calendar, no attendance regularization/correction flow, no multi-level leave approval, no partial cancellation of multi-day leave. Full list: `docs/PRD.md` Out-of-scope, `docs/DECISIONS.md` ADR-022/ADR-024.
 
 ## Project Docs Index
 

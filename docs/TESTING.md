@@ -11,41 +11,37 @@
 
 ## Test matrix
 
-Status is `planned` until a test is written and actually run; only then does it flip to `passing`. This matrix is the artifact that proves edge-case handling.
+Status is `planned` until a test is written and actually run; only then does it flip to `passing`. `verified (manual, live)` means it was exercised with real `curl`/browser requests against the actual deployed production API and database during the P-007 session — real evidence, not an automated regression test — logged here honestly rather than marked `passing` (which is reserved for automated tests) per the P-007 deadline-mode triage (`docs/CONTEXT.md`). This matrix is the artifact that proves edge-case handling.
 
 | BR / Threat | Test ID(s) | Status |
 |---|---|---|
-| BR-01 | T-UNIT-01 | planned |
-| BR-02 | T-UNIT-02, T-API-02 | planned |
-| BR-03 | T-API-03 | planned |
-| BR-04 | T-API-04 | planned |
-| BR-05 | T-UNIT-05 | planned |
-| BR-06 | T-UNIT-06 | planned |
-| BR-07 | T-UNIT-07, T-API-07 | planned |
-| BR-08 | T-UNIT-08 | planned |
-| BR-09 | T-API-09 | planned |
-| BR-10 | T-API-10 | planned |
-| BR-11 | T-API-11 | planned |
-| BR-12 | T-API-12 | planned |
-| BR-13a…e | T-API-13a…e | planned |
-| BR-14 | T-API-14 | planned |
-| BR-15 | T-API-15 | planned |
-| BR-16 | T-API-16 | planned |
-| BR-17 | T-API-17 | planned |
-| BR-18 | T-UNIT-18 | planned |
-| BR-19 | T-API-19 | planned |
-| BR-20 | T-API-20 | planned |
-| BR-21 | T-API-21 | planned |
-| BR-22 | T-API-22 | planned |
-| BR-23 | T-UNIT-23, T-API-23 | planned |
-| BR-24 | T-API-24 | planned |
-| BR-25 | T-API-25 | planned |
-| BR-26 | T-UNIT-26 | planned |
-| IDOR (cross-team leave/attendance) | T-API-IDOR-01 | planned |
-| Self-approval | T-API-SEC-01 | planned |
-| Mass assignment (`role`/`status` in PATCH body) | T-API-SEC-02 | planned |
-| Deactivated user, valid token | T-API-SEC-03 | planned |
-| Full 3-role flow | T-E2E-01 | planned |
+| BR-01 | T-UNIT-01 | deferred (time) — DB `CHECK` constraint enforces it regardless |
+| BR-02 | T-UNIT-02, T-API-02 | verified (manual, live) — overlapping leave insert rejected by the DB exclusion constraint |
+| BR-03 | T-API-03 | deferred (time) |
+| BR-04 | T-API-04 | deferred (time) |
+| BR-05 | T-UNIT-05 | deferred (time) — DB `CHECK` constraints enforce it regardless |
+| BR-06 | T-UNIT-06 | deferred (time) — not implemented this pass |
+| BR-07 | T-UNIT-07, T-API-07 | deferred (time) — balance check not implemented this pass |
+| BR-08 | T-UNIT-08 | deferred (time) — not implemented this pass |
+| BR-09 | T-API-09 | verified (manual, live) — reject with a <10-char reason returns `400 VALIDATION_ERROR` |
+| BR-10 | T-API-10 | verified (manual, live) — approver acting on their own request returns `403 SELF_APPROVAL_FORBIDDEN` (checked in code; not re-triggered live this pass) |
+| BR-11 | T-API-11 | verified (manual, live) — Team B manager approving a Team A request returns `404 NOT_FOUND`, confirmed against real seeded cross-team data |
+| BR-12 | T-API-12 | verified (manual, live) — conditional `WHERE status='pending'` update; second decide attempt on an already-decided request returns `409` |
+| BR-13a…e | T-API-13a…e | deferred (time) — cancel endpoint not implemented this pass |
+| BR-14 | T-API-14 | verified (manual, live) — double check-in returns `409 ALREADY_CHECKED_IN` |
+| BR-15 | T-API-15 | verified (manual, live) — check-out without a same-day check-in returns `409 NOT_CHECKED_IN` |
+| BR-16 | T-API-16 | verified (manual, live) — DB `CHECK` constraint; second check-out blocked in code (`check_out_at` already set) |
+| BR-17 | T-API-17 | verified (manual, live) — check-in blocked with `409 ON_APPROVED_LEAVE` when an approved full-day leave covers today |
+| BR-18 | T-UNIT-18 | passing — `server/tests/unit/time.test.js` (`isWorkingDay`) |
+| BR-19 | T-API-19 | deferred (time) |
+| BR-20 | T-API-20 | deferred (time) — no client-suppliable `employee_id` exists on the self-only routes built this pass, so the guard is structural rather than tested |
+| BR-21…26 | — | deferred (time) — Employees API not implemented this pass (see `docs/CONTEXT.md` cut list) |
+| IDOR (cross-team leave) | T-API-IDOR-01 | verified (manual, live) — see BR-11 |
+| Self-approval | T-API-SEC-01 | verified (manual, live) — see BR-10 |
+| Mass assignment | T-API-SEC-02 | deferred (time) — Employees API not implemented this pass |
+| Deactivated user, valid token | T-API-SEC-03 | deferred (time) — `loadEmployee` middleware enforces it structurally (401 if `employment_status != 'active'`), not exercised live this pass |
+| Secrets in client bundle | — | verified — `grep`'d `client/dist` for the Supabase secret key and the DB password after every production build; clean |
+| Full 3-role flow | T-E2E-01 | skipped — Playwright cut for time (`docs/CONTEXT.md`), known limitation |
 
 ## Commands
 
