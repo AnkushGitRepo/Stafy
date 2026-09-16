@@ -77,3 +77,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Real read-only Employees directory (Admin): `GET /api/employees` (search + department + status filter, admin-only). New `/app/employees` page with the P-006 design's shared filter-bar/table pattern (reduced fidelity — no drawer, add/edit/deactivate, or pagination yet).
 - Real Attendance page: `GET /api/attendance?date=` (Admin org-wide, Manager team-scoped, per-employee status derived from attendance + approved leave, weekend-aware), `GET /api/attendance/mine` (Employee, last 30 days). New `/app/attendance` page with date navigation and 4 summary cards for Admin/Manager, a plain history list for Employee.
 - Real Leave balance: `GET /api/leave-requests/balance` (per-type quota/used/remaining this calendar year, Unpaid shows "No limit"). Meter row on `/app/leave`. Display-only — BR-07 (block apply on insufficient balance) is still a cut.
+- Real Approvals page (Admin/Manager): dedicated queue at `/app/approvals` for reviewing and deciding pending leave requests with inline reason validation.
+- Real Leave page for all roles: `/app/leave` now supports Admin and Manager accounts as well (balances, apply modal, cancellation).
+- Real Team page (Manager): dedicated `/app/team` view displaying direct reports and their current status.
+- Integration tests: `server/tests/integration/api.test.js` (Supertest) verifying auth guards and health checks; `npm test` now passes end-to-end.
+

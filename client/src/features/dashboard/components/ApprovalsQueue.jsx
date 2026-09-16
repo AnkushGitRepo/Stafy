@@ -47,6 +47,7 @@ export function ApprovalsQueue({ initialApprovals, loading }) {
       setRejectingId(null);
       removeRow(id);
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['approvals'] });
     } catch (err) {
       setErrorText(err.message ?? 'Something went wrong.');
     } finally {

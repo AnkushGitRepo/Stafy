@@ -6,7 +6,6 @@ import { EmptyState } from '../../../components/ui/EmptyState.jsx';
 import { PageHeader } from '../../../components/ui/PageHeader.jsx';
 import { Skeleton } from '../../../components/ui/Skeleton.jsx';
 import { StatusPill } from '../../../components/ui/StatusPill.jsx';
-import { useAuth } from '../../../lib/authContext.jsx';
 import { applyForLeave, cancelLeaveRequest, getLeaveBalance, getLeaveTypes, getMyLeaveRequests } from '../../../lib/api.js';
 
 function BalanceMeter({ name, quota, used, remaining }) {
@@ -29,7 +28,6 @@ function BalanceMeter({ name, quota, used, remaining }) {
     </div>
   );
 }
-import { ComingSoonPage } from '../../dashboard/components/ComingSoonPage.jsx';
 
 function ApplyLeaveModal({ leaveTypes, onClose, onSubmit, submitting, errorText }) {
   const [leaveTypeId, setLeaveTypeId] = useState(leaveTypes[0]?.id ?? '');
@@ -269,11 +267,6 @@ function EmployeeLeavePage() {
 }
 
 export function LeavePage() {
-  const { role } = useAuth();
-  if (role === 'employee') return <EmployeeLeavePage />;
-  // Manager/Admin approvals already work from the dashboard's Approvals panel
-  // (P-005/P-007) — a dedicated Approvals/Team-calendar/All-requests page per
-  // docs/prompts/P-006-core-pages-design.md §5.2/§5.3 is a known cut, see
-  // docs/CONTEXT.md.
-  return <ComingSoonPage title="Leave" />;
+  return <EmployeeLeavePage />;
 }
+

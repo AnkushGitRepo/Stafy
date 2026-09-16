@@ -44,6 +44,7 @@ Status is `planned` until a test is written and actually run; only then does it 
 | Self-approval | T-API-SEC-01 | verified (manual, live) — see BR-10 |
 | Mass assignment | T-API-SEC-02 | deferred (time) — Employees API not implemented this pass |
 | Deactivated user, valid token | T-API-SEC-03 | deferred (time) — `loadEmployee` middleware enforces it structurally (401 if `employment_status != 'active'`), not exercised live this pass |
+| Unauthenticated access to protected routes | T-API-AUTH-01 | passing — `server/tests/integration/api.test.js` (Supertest: `/api/auth/me`, `/api/dashboard`, `/api/employees`, `/api/leave-requests/balance`, `/api/attendance/mine` reject with `401 UNAUTHENTICATED`, health check returns 200) |
 | Secrets in client bundle | — | verified — `grep`'d `client/dist` for the Supabase secret key and the DB password after every production build; clean |
 | Full 3-role flow | T-E2E-01 | skipped — Playwright cut for time (`docs/CONTEXT.md`), known limitation |
 
