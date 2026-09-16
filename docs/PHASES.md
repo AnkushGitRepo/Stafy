@@ -9,7 +9,7 @@ Deadline: **2026-09-16 16:00 IST**. Feature freeze: **2026-09-16 13:00 IST**.
 |---|---|---|---|---|
 | P0 | Setup: docs, agent config, scaffold, first commit | 1.5h | [x] all docs in §4 exist [x] `.claude/` config exists [x] `npm install`/`lint`/`test:unit`/`dev` succeed [x] 3 commits made | — |
 | P1 | Foundation: migrations, seed, auth (login/logout/refresh/me), authenticate/authorize middleware, policies, error handler, domain pure functions + unit tests, deploy skeleton to Vercel | 4h | [ ] migration run on real Supabase project [ ] seed data loads [ ] auth endpoints work end-to-end [ ] domain unit tests passing [ ] skeleton deployed | P0. Can run in parallel with P2 design work. |
-| P2 | Design system + Landing (GSAP) + Login + Privacy/Terms + 404 + SEO assets | 3h (GSAP polish hard-capped at 1h) | [ ] tokens filled from design reference [ ] landing/login/privacy/terms/404 built [ ] Lighthouse ≥90 on landing | Can run in parallel with P1 |
+| P2 | Design system + Landing (GSAP) + Login + Privacy/Terms + 404 + SEO assets | 3h (GSAP polish hard-capped at 1h) | [x] tokens filled from design reference [x] landing/login/privacy/terms/404 built [x] Lighthouse ≥90 on landing (93/97/100/100) | Can run in parallel with P1 |
 | P3 | Employees module (HR): list/search/filter/paginate, add, edit, view, activate/deactivate, self profile | 2.5h | [ ] FR-EMP-01…05 implemented + tested | P1 |
 | P4 | Attendance: check-in/out, today, history, HR/manager scoped views + filters | 2.5h | [ ] FR-ATT-01…04 implemented + tested | P1 |
 | P5 | Leave: apply, balance, my requests, cancel, approvals queue, approve/reject with reason | 3.5h | [ ] FR-LV-01…04 implemented + tested | P1, P4 (attendance existence check for BR-03) |

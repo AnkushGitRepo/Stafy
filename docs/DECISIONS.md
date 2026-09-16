@@ -1,4 +1,4 @@
-> Status: Living   ·   Last updated: 2026-09-15 22:45 IST   ·   Owner: Ankush
+> Status: Living   ·   Last updated: 2026-09-15 23:30 IST   ·   Owner: Ankush
 > Related: docs/BUSINESS_RULES.md, docs/ARCHITECTURE.md, docs/SECURITY.md, docs/DATABASE.md
 
 # Decisions (ADR log)
@@ -32,6 +32,7 @@ Never edit an accepted ADR's decision — supersede it with a new ADR instead.
 | ADR-023 | Demo safety: seed reset, last-admin protection | Accepted | 2026-09-15 |
 | ADR-024 | Optional features chosen vs. rejected for time | Accepted | 2026-09-15 |
 | ADR-025 | Brand identity and landing page design | Accepted | 2026-09-15 |
+| ADR-026 | Account activation flow instead of public sign-up | Accepted | 2026-09-15 |
 
 ---
 
@@ -385,3 +386,18 @@ Never edit an accepted ADR's decision — supersede it with a new ADR instead.
 - Tradeoffs / consequences: `--color-surface` is genuine pure white (`#FFFFFF`) in the real design, which is stricter-than-necessary read as a literal violation of this project's own "no pure white neutrals" anti-slop rule; accepted as delivered (white card on a tinted `#F6F8F6` background is a defensible elevation choice, not neutral-scale laziness) rather than altering the real design to satisfy a self-imposed rule after the fact. The design's own notes flag a real Lighthouse risk (GSAP+ScrollTrigger+Flip ≈70KB gzipped, two Google Fonts families) that P-003/P2 must mitigate (self-host/subset fonts, consider dropping Flip) to hit the ≥90 Lighthouse target.
 - Revisit if: the Lighthouse mitigation in P2 forces a motion-library change (e.g. dropping Flip) — supersede with a follow-up ADR if so, rather than editing this one.
 - Links: `docs/DESIGN.md` (full tokens, section list, component inventory, motion spec, open items), `docs/prompts/P-002-brand-and-landing-design.md`, `docs/PHASES.md` P2.
+
+## ADR-026: Account activation flow instead of public sign-up
+
+- Status: Accepted
+- Date: 2026-09-15 23:30 IST
+- Context: Stafy has no public self-registration by design (ADR-003, ADR-008) — HR creates every employee record, including role and manager. The P-003 prompt asked for a "sign up" screen for the mock UI pass.
+- Discussion: The owner asked for a sign-up screen. Building a literal open self-registration form would let a visitor choose their own role, directly contradicting the authorization model the assessment is scored on (ADR-004: role/status/team come from the database row created by HR, never chosen by the user). The alternative proposed and accepted: reframe as an **account-activation** flow — the standard pattern for admin-provisioned accounts, where HR creates the person and they receive an invite link to set their own password. This keeps a signup-shaped screen (something to click, a password to choose) without contradicting RBAC.
+- Options considered:
+  1. Literal public `/signup` form (role, email, password all user-chosen) — rejected outright: breaks the entire authorization model.
+  2. `/activate?token=...` "Set up your account" flow, name/email read-only from the HR-created record, only password is user-chosen (chosen) — pros: matches real HRMS conventions, no RBAC contradiction; cons: can't be demoed fully end-to-end until HR "add employee" (a later phase) issues real tokens.
+- Decision: Build `/activate?token=...` instead of `/signup`. No route or visible text anywhere says "Sign up" or implies self-registration; `/login` is the only entry point in navigation. In this mock pass (P-003), token validity and the invitee record are simulated in `client/src/mocks/users.js` (`MOCK_INVITE`) — any non-empty token is treated as valid, matching a fixed sample invitee (Karan Joshi). Real token issuance and validation land with HR's "add employee" flow in a later phase.
+- Why: preserves the core authorization guarantee (nobody picks their own role) while still giving the owner a functional "join" experience to demo.
+- Tradeoffs / consequences: The activation flow can't be fully demoed end-to-end (real invite → real token → real activation) until HR "add employee" exists; documented as a known limitation. The mock's token check is deliberately permissive (any non-empty string) since there's no real backend yet — tightened to real signed/expiring tokens in P1.
+- Revisit if: never expected to change — self-registration remains out of scope for the life of this assessment project.
+- Links: `client/src/features/auth/pages/ActivateAccountPage.jsx`, `client/src/mocks/users.js`, ADR-003, ADR-008, `docs/prompts/P-003-landing-auth-dummy-dashboard.md`.

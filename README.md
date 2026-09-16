@@ -28,7 +28,7 @@ Demo credentials are intentionally public for evaluation — see `docs/SECURITY.
 - Role-shaped dashboards (Admin/Manager/Employee) — every number is a real query, not mock data.
 - Employee check-in/check-out with server-enforced rules: no double check-in, no check-out without check-in, no check-in on a weekend or on approved full-day leave.
 - Manager/Admin leave approvals: approve/reject with a required reason, self-approval forbidden, a manager acting on another team's request gets a 404 (not a 403 — no enumeration), a decided request can't be decided twice.
-- Employee leave: apply for leave (full/half day, live overlap rejection via a DB exclusion constraint, reason validation) and cancel pending/not-yet-started-approved requests, at `/app/leave`.
+- Employee leave: apply for leave (full/half day, live overlap rejection via a DB exclusion constraint, reason validation), cancel pending/not-yet-started-approved requests, and a real balance meter per leave type, at `/app/leave`.
 - Admin: read-only Employees directory at `/app/employees` — search by name/email/ID, filter by department/status.
 - Attendance at `/app/attendance`: Admin (org-wide) and Manager (team-scoped) get a single-day table with prev/next date navigation and 4 summary cards (Present/Half Day/Absent/On Leave); Employee gets their own last-30-days history.
 - Real audit log writes on deactivation/approval/rejection (surfaced as Admin's "Recent activity").

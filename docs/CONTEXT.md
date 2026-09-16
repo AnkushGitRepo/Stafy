@@ -41,6 +41,7 @@ With that fixed and real time still left, built three more real, deployed featur
 - **Leave Apply** (Employee): was on the original "never cut" list and had been missed — now real (`POST /api/leave-requests`, `GET /api/leave-requests/types|mine`, `POST /api/leave-requests/:id/cancel`), at `/app/leave`.
 - **Employees directory** (Admin, read-only): `GET /api/employees` with search/department/status filters, at `/app/employees` — the first real slice of the Employees module and of `other_pages.zip`'s design pattern (flat table, filter bar), though reduced-fidelity (no drawer, no add/edit/deactivate, no pagination).
 - **Attendance page** (all 3 roles): `GET /api/attendance?date=` (Admin org-wide / Manager team-scoped single-day table + 4 summary cards, with date navigation) and `GET /api/attendance/mine` (Employee's 30-day history), at `/app/attendance`. Status derivation is weekend-aware (an earlier version briefly mislabeled non-working days as "absent" — caught and fixed before shipping, via a real curl check against a known Saturday date).
+- **Leave balance**: `GET /api/leave-requests/balance` (per-type quota/used/remaining, Unpaid = "No limit"), rendered as a meter row on `/app/leave`. Display-only — BR-07 (blocking apply on insufficient balance) remains a cut.
 
 # Cuts made this pass (P-007 + follow-up), in the order the prompt's own cut-order named them
 
