@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { getPool } from '../db/pool.js';
 import { AppError } from '../lib/errors.js';
+import { workDateInIst } from '../lib/time.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { authorize } from '../middleware/authorize.js';
 import { loadEmployee } from '../middleware/loadEmployee.js';
@@ -13,6 +14,101 @@ const router = Router();
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
 }
+
+router.get('/types', authenticate, loadEmployee, authorize('leave.self'), async (req, res, next) => {
+  try {
+    const { rows } = await getPool().query(`select id, code, name, annual_quota, is_paid from leave_types order by name`);
+    res.json({ data: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/mine', authenticate, loadEmployee, authorize('leave.self'), async (req, res, next) => {
+  try {
+    const { rows } = await getPool().query(
+      `select lr.id, lr.start_date, lr.end_date, lr.duration, lr.days, lr.status, lr.reason, lr.rejection_reason, lr.created_at, lt.name as type_name
+       from leave_requests lr join leave_types lt on lt.id = lr.leave_type_id
+       where lr.employee_id = $1 order by lr.created_at desc`,
+      [req.actor.id],
+    );
+    res.json({
+      data: rows.map((r) => ({
+        id: r.id,
+        dates: r.start_date === r.end_date ? fmtDate(r.start_date) : `${fmtDate(r.start_date)} – ${fmtDate(r.end_date)}`,
+        startDate: r.start_date,
+        type: r.type_name,
+        days: Number(r.days),
+        status: r.status,
+        reason: r.reason,
+        rejectionReason: r.rejection_reason,
+        canCancel: r.status === 'pending' || (r.status === 'approved' && r.start_date >= workDateInIst()),
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const applySchema = z
+  .object({
+    leaveTypeId: z.string().uuid(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    duration: z.enum(['full_day', 'half_day']).default('full_day'),
+    halfSession: z.enum(['first_half', 'second_half']).optional(),
+    reason: z.string().min(10).max(500),
+  })
+  .strict()
+  .refine((v) => v.endDate >= v.startDate, { message: 'End date cannot be before start date.', path: ['endDate'] })
+  .refine((v) => v.duration !== 'half_day' || v.startDate === v.endDate, {
+    message: 'Half-day leave must be a single date.',
+    path: ['duration'],
+  })
+  .refine((v) => v.duration !== 'half_day' || Boolean(v.halfSession), {
+    message: 'Half-day leave needs a session (first or second half).',
+    path: ['halfSession'],
+  });
+
+router.post('/', authenticate, loadEmployee, authorize('leave.self'), validate(applySchema), async (req, res, next) => {
+  try {
+    const { leaveTypeId, startDate, endDate, duration, halfSession, reason } = req.body;
+    const days = duration === 'half_day' ? 0.5 : (new Date(`${endDate}T00:00:00Z`) - new Date(`${startDate}T00:00:00Z`)) / 86400000 + 1;
+
+    const { rows } = await getPool().query(
+      `insert into leave_requests (employee_id, leave_type_id, start_date, end_date, duration, half_session, days, reason)
+       values ($1,$2,$3,$4,$5,$6,$7,$8) returning id`,
+      [req.actor.id, leaveTypeId, startDate, endDate, duration, halfSession ?? null, days, reason],
+    );
+    res.status(201).json({ data: { id: rows[0].id } });
+  } catch (err) {
+    if (err.code === '23P01') return next(new AppError('LEAVE_OVERLAP', 409, 'This overlaps one of your existing pending or approved leave requests.'));
+    if (err.code === '23514') return next(new AppError('VALIDATION_ERROR', 400, 'Invalid leave request.'));
+    next(err);
+  }
+});
+
+router.post('/:id/cancel', authenticate, loadEmployee, authorize('leave.self'), async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const { rows: existing } = await pool.query(
+      `select id, status, start_date from leave_requests where id=$1 and employee_id=$2`,
+      [req.params.id, req.actor.id],
+    );
+    const request = existing[0];
+    if (!request) throw new AppError('NOT_FOUND', 404, 'Leave request not found.');
+    if (request.status === 'rejected' || request.status === 'cancelled') {
+      throw new AppError('INVALID_STATUS_TRANSITION', 409, 'This request cannot be cancelled.');
+    }
+    if (request.status === 'approved' && request.start_date < workDateInIst()) {
+      throw new AppError('LEAVE_ALREADY_STARTED', 409, 'This leave has already started and cannot be cancelled.');
+    }
+    await pool.query(`update leave_requests set status='cancelled', cancelled_at=now() where id=$1`, [request.id]);
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.get('/approvals', authenticate, loadEmployee, authorize('leave.approvals.read'), async (req, res, next) => {
   try {

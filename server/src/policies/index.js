@@ -3,6 +3,7 @@
 const RULES = {
   'dashboard.read': () => true,
   'attendance.self': () => true,
+  'leave.self': () => true,
   'leave.approvals.read': (actor) => actor.role === 'admin' || actor.role === 'manager',
   'leave.decide': (actor) => actor.role === 'admin' || actor.role === 'manager',
 };

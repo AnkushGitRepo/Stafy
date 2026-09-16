@@ -220,3 +220,30 @@ export async function rejectLeaveRequest(id, reason) {
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(body?.error?.code ?? 'REJECT_FAILED', res.status, body?.error?.message ?? 'Could not reject this request.');
 }
+
+export async function getLeaveTypes() {
+  const res = await api('/api/leave-requests/types');
+  if (!res.ok) throw new ApiError('LEAVE_TYPES_LOAD_FAILED', res.status, 'Could not load leave types.');
+  return res.json();
+}
+
+export async function getMyLeaveRequests() {
+  const res = await api('/api/leave-requests/mine');
+  if (!res.ok) throw new ApiError('LEAVE_LOAD_FAILED', res.status, 'Could not load your leave requests.');
+  return res.json();
+}
+
+export async function applyForLeave(payload) {
+  const res = await api('/api/leave-requests', { method: 'POST', body: JSON.stringify(payload) });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(body?.error?.code ?? 'APPLY_FAILED', res.status, body?.error?.message ?? 'Could not submit this request.');
+  return body;
+}
+
+export async function cancelLeaveRequest(id) {
+  const res = await api(`/api/leave-requests/${id}/cancel`, { method: 'POST' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(body?.error?.code ?? 'CANCEL_FAILED', res.status, body?.error?.message ?? 'Could not cancel this request.');
+  }
+}
